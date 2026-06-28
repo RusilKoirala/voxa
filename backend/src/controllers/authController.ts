@@ -7,7 +7,7 @@ import { eq } from 'drizzle-orm'
 import { authenticateToken } from '../middleware/auth.js'
 import { generateToken } from '../utils/jwt.js'
 
-
+// registerr
 export const register = async (req:Request, res:Response) => 
 {
     try
@@ -81,6 +81,7 @@ export const register = async (req:Request, res:Response) =>
     }
 }
 
+// loginn
 export const login = async (req:Request, res:Response) => 
 {
     try {
@@ -132,6 +133,7 @@ export const login = async (req:Request, res:Response) =>
     }
 }
 
+// get Profileee
 export const getProfile = async (req: Request, res: Response) => { 
     try { 
         
