@@ -11,6 +11,7 @@ import communityRoutes from './routes/community'
 import postRoutes from './routes/post'
 import commentRoutes from './routes/comment'
 import voteRoutes from './routes/vote'
+import userRoutes from './routes/user'
 
 const app = express()
 
@@ -28,6 +29,7 @@ app.use('/api/communities', communityRoutes)
 app.use('/api/posts', postRoutes)
 app.use('/api/comments',commentRoutes)
 app.use('/api/votes', voteRoutes)
+app.use('/api/users', userRoutes)
 
 app.get('/healthz', (req, res) => {
   res.status(200).json({
