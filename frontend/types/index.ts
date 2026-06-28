@@ -51,3 +51,21 @@ export interface ApiResponse<T> {
   message: string
   data?: T
 }
+
+export interface UserProfile {
+    user: {
+        id: number
+        username: string
+        avatar?: string
+        bio?: string
+        createdAt: Date
+    }
+    karma: number
+    postCount: number
+    commentCount: number
+    posts: Post[]
+    comments: (Comment & {
+        post?: Post & { community?: Community
+        }
+    }) []
+}

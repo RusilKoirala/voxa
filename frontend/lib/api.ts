@@ -1,5 +1,6 @@
 import axios from 'axios'
-import type { User, Community, Post, Comment, ApiResponse } from '@/types'
+import type { User, Community, Post, Comment, ApiResponse , UserProfile} from '@/types'
+
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
 
@@ -10,6 +11,14 @@ const api = axios.create({
     },
     withCredentials: true
 })
+// User API
+
+export const userAPI = {
+    getByUsername: (username: string)=> 
+        api.get<ApiResponse<UserProfile>>(`/users/${username}`)
+}
+
+
 
 // Auth API
 export const authAPI = {
