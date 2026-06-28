@@ -14,12 +14,13 @@ import type { Community } from '@/types'
 interface PostFormProps {
   onCancel: () => void
   onSuccess?: () => void
+  communityId?: number
 }
 
-export default function PostForm({ onCancel, onSuccess }: PostFormProps) {
+export default function PostForm({ onCancel, onSuccess, communityId }: PostFormProps) {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [selectedCommunity, setSelectedCommunity] = useState('')
+  const [selectedCommunityId, setSelectedCommunityId] = useState<number | undefined>(communityId)
   const [communities, setCommunities] = useState<Community[]>([])
   const [loading, setLoading] = useState(false)
   const [loadingCommunities, setLoadingCommunities] = useState(true)
@@ -33,8 +34,8 @@ export default function PostForm({ onCancel, onSuccess }: PostFormProps) {
       const response = await communityAPI.getAll()
       if (response.data.success && response.data.data) {
         setCommunities(response.data.data)
-        if (response.data.data.length > 0) {
-          setSelectedCommunity(response.data.data[0].id.toString())
+        if (!communityId && response.data.data.length > 0) {
+          setSelectedCommunityId(response.data.data[0].id)
         }
       }
     } catch (error) {
@@ -50,7 +51,7 @@ export default function PostForm({ onCancel, onSuccess }: PostFormProps) {
       toast.error('Title is required')
       return
     }
-    if (!selectedCommunity) {
+    if (!selectedCommunityId) {
       toast.error('Please select a community')
       return
     }
@@ -60,7 +61,7 @@ export default function PostForm({ onCancel, onSuccess }: PostFormProps) {
       const response = await postAPI.create({
         title,
         content: content.trim() || undefined,
-        communityId: parseInt(selectedCommunity)
+        communityId: selectedCommunityId
       })
 
       if (response.data.success) {
@@ -100,14 +101,14 @@ export default function PostForm({ onCancel, onSuccess }: PostFormProps) {
             ) : (
               <select
                 id="community"
-                value={selectedCommunity}
-                onChange={(e) => setSelectedCommunity(e.target.value)}
+                value={selectedCommunityId || ''}
+                onChange={(e) => setSelectedCommunityId(parseInt(e.target.value))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 required
               >
                 <option value="">Select a community</option>
                 {communities.map((community) => (
-                  <option key={community.id} value={community.id.toString()}>
+                  <option key={community.id} value={community.id}>
                     r/{community.name}
                   </option>
                 ))}
