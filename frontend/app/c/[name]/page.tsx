@@ -68,6 +68,7 @@ export default function CommunityPage() {
     try {
       await communityAPI.join(community.id)
       setIsMember(true)
+
       toast.success('Joined community!')
     } catch (error) {
       toast.error('Failed to join community')

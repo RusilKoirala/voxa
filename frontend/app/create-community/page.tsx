@@ -30,6 +30,7 @@ export default function CreateCommunityPage() {
       return
     }
 
+    
     setLoading(true)
     try {
       const response = await communityAPI.create({

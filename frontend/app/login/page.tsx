@@ -56,6 +56,7 @@ export default function LoginPage() {
                 placeholder="you@example.com"
                 required
               />
+
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>

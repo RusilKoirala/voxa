@@ -14,11 +14,12 @@ import { MessageCircle, FileText, Award, Calendar } from 'lucide-react'
 
 type Tab = 'posts' | 'comments'
 
+
 export default function UserProfilePage() {
   const { username } = useParams<{ username: string }>()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
-  
+
   const [tab, setTab] = useState<Tab>('posts')
 
   useEffect(() => {
