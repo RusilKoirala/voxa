@@ -7,10 +7,11 @@ import {
 } from "../controllers/voteController.js"
 import { authenticateToken } from "../middleware/auth.js"
 
+// router
 const router = express.Router()
 
 
-
+// routes
 router.post('/post', authenticateToken, votePost)
 router.post('/comment', authenticateToken, voteComment)
 router.delete('/post/:postId', authenticateToken,removeVotePost)
