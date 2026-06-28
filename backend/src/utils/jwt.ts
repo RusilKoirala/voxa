@@ -9,5 +9,6 @@ export const generateToken = (userId: number): string => {
 }
 
 export const verifyToken = (token: string): { userId: number } => {
-  return jwt.verify(token, process.env.JWT_SECRET as string) as { userId: number }
+  const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any
+  return { userId: decoded.userId || decoded.id }
 }

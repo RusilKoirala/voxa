@@ -2,13 +2,13 @@ import { Request, Response } from "express";
 import { db } from "../db/index.js";
 import { comments, posts } from "../db/schema.js";
 
-import {eq, and} from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 
 
-export const createComment = async (req: Request, res:Response) => {
+export const createComment = async (req: Request, res: Response) => {
     try {
-        const {content, postId, parentId} = req.body
-        
+        const { content, postId, parentId } = req.body
+
         if (!content || !postId) {
             return res.status(400).json({
                 success: false,
@@ -23,11 +23,11 @@ export const createComment = async (req: Request, res:Response) => {
             })
         }
 
-        const post = await db.select().from(posts).where(
-            eq(posts.id, parseInt(postId)) 
-        ).limit(1)
+        const post = await db.query.posts.findFirst({
+            where: eq(posts.id, parseInt(postId))
+        })
 
-        if (post.length === 0) {
+        if (!post) {
             return res.status(404).json({
                 success: false,
                 message: 'Post not found',
@@ -35,11 +35,11 @@ export const createComment = async (req: Request, res:Response) => {
         }
 
         if (parentId) {
-            const parentComment = await db.select().from(comments).where(
-                eq(comments.id, parseInt(parentId))
-            ).limit(1)
+            const parentComment = await db.query.comments.findFirst({
+                where: eq(comments.id, parseInt(parentId))
+            })
 
-            if (parentComment.length === 0) {
+            if (!parentComment) {
                 return res.status(404).json({
                     success: false,
                     message: 'Parent comment not found'
@@ -73,15 +73,20 @@ export const getCommentsByPost = async (req: Request, res: Response) => {
     try {
         const { postId } = req.params
 
-        const postComments = await db.select().from(comments).where(
-            eq(comments.postId, parseInt(postId))
-        )
+        const postComments = await db.query.comments.findMany({
+            where: eq(comments.postId, parseInt(postId)),
+            with: {
+                author: true
+            },
+            orderBy: (comments, { asc }) => [asc(comments.createdAt)]
+        })
+
         res.status(200).json({
             success: true,
             message: 'Comments fetched successfully',
             data: postComments
         })
-    
+
     } catch (error) {
         console.error('Get comments by post error:', error)
         res.status(500).json({
@@ -94,13 +99,16 @@ export const getCommentsByPost = async (req: Request, res: Response) => {
 
 export const getCommentById = async (req: Request, res: Response) => {
     try {
-        const {id} = req.params
+        const { id } = req.params
 
-        const comment = await db.select().from(comments).where(
-            eq(comments.id, parseInt(id))
-        )
+        const comment = await db.query.comments.findFirst({
+            where: eq(comments.id, parseInt(id)),
+            with: {
+                author: true
+            }
+        })
 
-        if(comment.length === 0) {
+        if (!comment) {
             return res.status(404).json({
                 success: false,
                 message: 'Comment not found'
@@ -109,7 +117,7 @@ export const getCommentById = async (req: Request, res: Response) => {
         res.status(200).json({
             success: true,
             message: 'Comment fetched successfully',
-            data: comment[0]
+            data: comment
         })
     } catch (error) {
         console.error('Get comment by id error:', error)
@@ -120,10 +128,10 @@ export const getCommentById = async (req: Request, res: Response) => {
     }
 }
 
-export const updateComment = async (req:Request, res: Response) => {
+export const updateComment = async (req: Request, res: Response) => {
     try {
-        const {id} = req.params
-        const {content} = req.body
+        const { id } = req.params
+        const { content } = req.body
 
         if (!content) {
             return res.status(400).json({
@@ -139,19 +147,18 @@ export const updateComment = async (req:Request, res: Response) => {
             })
         }
 
-        const comment = await db.select().from(comments).where(
-            eq(comments.id, parseInt(id))
-        ).limit(1)
+        const comment = await db.query.comments.findFirst({
+            where: eq(comments.id, parseInt(id))
+        })
 
-        if (comment.length === 0)
-        {
+        if (!comment) {
             return res.status(404).json({
                 success: false,
                 message: 'Comment not found',
             })
         }
 
-        if (comment[0].authorId !== req.userId) {
+        if (comment.authorId !== req.userId) {
             return res.status(403).json({
                 success: false,
                 message: 'You can only update your own comments'
@@ -160,7 +167,7 @@ export const updateComment = async (req:Request, res: Response) => {
 
         const updatedComment = await db.update(comments).set({
             content,
-            updatedAt : new Date()
+            updatedAt: new Date()
         }).where(eq(comments.id, parseInt(id))).returning()
 
         res.status(200).json({
@@ -178,30 +185,29 @@ export const updateComment = async (req:Request, res: Response) => {
 }
 
 
-export const deleteComment = async (req:Request, res:Response) => {
+export const deleteComment = async (req: Request, res: Response) => {
     try {
-        const {id } = req.params
+        const { id } = req.params
 
-        if (!req.userId) 
-        {
+        if (!req.userId) {
             return res.status(401).json({
                 success: false,
                 message: 'Unauthorized',
             })
         }
 
-        const comment = await db.select().from(comments).where(
-            eq(comments.id,parseInt(id))
-        ).limit(1)
+        const comment = await db.query.comments.findFirst({
+            where: eq(comments.id, parseInt(id))
+        })
 
-        if (comment.length === 0) {
+        if (!comment) {
             return res.status(404).json({
-                success: false, 
+                success: false,
                 message: 'Comment not found',
             })
         }
 
-        if (comment[0].authorId !== req.userId) {
+        if (comment.authorId !== req.userId) {
             return res.status(403).json({
                 success: false,
                 message: 'You can only delete your comments'
@@ -218,7 +224,7 @@ export const deleteComment = async (req:Request, res:Response) => {
         console.error('Delete comment error:', error)
         res.status(500).json({
             success: false,
-            message : 'Internal server error'
+            message: 'Internal server error'
         })
     }
 }

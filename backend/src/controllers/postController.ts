@@ -62,9 +62,13 @@ export const getPostsByCommunity = async (req: Request, res: Response) => {
   try {
     const { communityId } = req.params
 
-    const communityPosts = await db.select().from(posts).where(
-      eq(posts.communityId, parseInt(communityId))
-    )
+    const communityPosts = await db.query.posts.findMany({
+      where: eq(posts.communityId, parseInt(communityId)),
+      with: {
+        author: true,
+        community: true
+      }
+    })
 
     res.status(200).json({
       success: true,
@@ -84,11 +88,15 @@ export const getPostById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
 
-    const post = await db.select().from(posts).where(
-      eq(posts.id, parseInt(id))
-    ).limit(1)
+    const post = await db.query.posts.findFirst({
+      where: eq(posts.id, parseInt(id)),
+      with: {
+        author: true,
+        community: true
+      }
+    })
 
-    if (post.length === 0) {
+    if (!post) {
       return res.status(404).json({
         success: false,
         message: 'Post not found'
@@ -98,7 +106,7 @@ export const getPostById = async (req: Request, res: Response) => {
     res.status(200).json({
       success: true,
       message: 'Post fetched successfully',
-      data: post[0]
+      data: post
     })
   } catch (error) {
     console.error('Get post by id error:', error)
@@ -121,18 +129,18 @@ export const updatePost = async (req: Request, res: Response) => {
       })
     }
 
-    const post = await db.select().from(posts).where(
-      eq(posts.id, parseInt(id))
-    ).limit(1)
+    const post = await db.query.posts.findFirst({
+      where: eq(posts.id, parseInt(id))
+    })
 
-    if (post.length === 0) {
+    if (!post) {
       return res.status(404).json({
         success: false,
         message: 'Post not found'
       })
     }
 
-    if (post[0].authorId !== req.userId) {
+    if (post.authorId !== req.userId) {
       return res.status(403).json({
         success: false,
         message: 'You can only update your own posts'
@@ -140,9 +148,9 @@ export const updatePost = async (req: Request, res: Response) => {
     }
 
     const updatedPost = await db.update(posts).set({
-      title: title || post[0].title,
-      content: content !== undefined ? content : post[0].content,
-      imageUrl: imageUrl !== undefined ? imageUrl : post[0].imageUrl,
+      title: title || post.title,
+      content: content !== undefined ? content : post.content,
+      imageUrl: imageUrl !== undefined ? imageUrl : post.imageUrl,
       updatedAt: new Date()
     }).where(eq(posts.id, parseInt(id))).returning()
 
@@ -171,18 +179,18 @@ export const deletePost = async (req: Request, res: Response) => {
       })
     }
 
-    const post = await db.select().from(posts).where(
-      eq(posts.id, parseInt(id))
-    ).limit(1)
+    const post = await db.query.posts.findFirst({
+      where: eq(posts.id, parseInt(id))
+    })
 
-    if (post.length === 0) {
+    if (!post) {
       return res.status(404).json({
         success: false,
         message: 'Post not found'
       })
     }
 
-    if (post[0].authorId !== req.userId) {
+    if (post.authorId !== req.userId) {
       return res.status(403).json({
         success: false,
         message: 'You can only delete your own posts'
@@ -206,7 +214,13 @@ export const deletePost = async (req: Request, res: Response) => {
 
 export const getAllPosts = async (req: Request, res: Response) => {
   try {
-    const allPosts = await db.select().from(posts)
+    const allPosts = await db.query.posts.findMany({
+      with: {
+        author: true,
+        community: true
+      },
+      orderBy: (posts, { desc }) => [desc(posts.createdAt)]
+    })
 
     res.status(200).json({
       success: true,
@@ -221,4 +235,3 @@ export const getAllPosts = async (req: Request, res: Response) => {
     })
   }
 }
-

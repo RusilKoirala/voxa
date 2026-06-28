@@ -1,6 +1,7 @@
 import express from 'express'
 import dotenv from "dotenv"
 import cookieParser from 'cookie-parser'
+import cors from 'cors'
 
 dotenv.config()
 
@@ -14,18 +15,12 @@ import voteRoutes from './routes/vote'
 const app = express()
 
 // Middleware
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true,
+}))
 app.use(express.json())
 app.use(cookieParser())
-
-// CORS
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:3000')
-  res.header('Access-Control-Allow-Credentials', 'true')
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200)
-  }
-  next()
-})
 
 // Routes
 app.use('/api/auth', authRoutes)
@@ -40,6 +35,8 @@ app.get('/healthz', (req, res) => {
     message: 'Server is healthy and running :)'
   })
 })
+
+
 
 const PORT = process.env.PORT || 8000
 
