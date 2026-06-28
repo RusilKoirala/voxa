@@ -34,14 +34,14 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <Link href="/" className="flex items-center justify-center space-x-2 mb-4">
+          <Link href="/" className="flex items-center justify-center gap-2 mb-4">
             <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold text-gray-900">voxa</span>
+            <span className="text-2xl font-bold">voxa</span>
           </Link>
           <CardTitle className="text-xl">Sign Up</CardTitle>
         </CardHeader>
@@ -88,7 +88,7 @@ export default function RegisterPage() {
               {loading ? 'Signing up...' : 'Sign Up'}
             </Button>
           </form>
-          <p className="text-center mt-6 text-sm text-gray-500">
+          <p className="text-center mt-6 text-sm text-muted-foreground">
             Already a member?{' '}
             <Link href="/login" className="text-blue-500 hover:text-blue-600 font-medium">
               Log In

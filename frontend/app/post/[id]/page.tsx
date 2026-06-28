@@ -43,7 +43,7 @@ export default function PostDetail() {
         postAPI.getById(Number(id)),
         commentAPI.getByPost(Number(id))
       ])
-      if (postRes.data.success) setPost(postRes.data.data)
+      if (postRes.data.success) setPost(postRes.data.data || null)
       if (commentsRes.data.success) setComments(commentsRes.data.data || [])
     } catch (error) {
       console.error('Failed to fetch post:', error)

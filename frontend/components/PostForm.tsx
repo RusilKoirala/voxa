@@ -103,7 +103,7 @@ export default function PostForm({ onCancel, onSuccess, communityId }: PostFormP
                 id="community"
                 value={selectedCommunityId || ''}
                 onChange={(e) => setSelectedCommunityId(parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full px-3 py-2 border rounded-lg bg-background focus:outline-none focus:ring-2"
                 required
               >
                 <option value="">Select a community</option>
@@ -140,19 +140,19 @@ export default function PostForm({ onCancel, onSuccess, communityId }: PostFormP
         </CardContent>
 
         <CardFooter className="border-t p-4 flex justify-between">
-          <div className="flex space-x-2">
+          <div className="flex gap-2">
             <Button type="button" variant="ghost" size="sm">
               <Image className="w-4 h-4 mr-2" />
               Image
             </Button>
           </div>
-          <div className="flex space-x-2">
+          <div className="flex gap-2">
             <Button type="button" variant="ghost" onClick={onCancel}>
               Cancel
             </Button>
             <Button
               type="submit"
-              className="bg-blue-500 hover:bg-blue-600"
+              className="bg-orange-500 hover:bg-orange-600"
               disabled={loading}
             >
               {loading ? 'Posting...' : 'Post'}

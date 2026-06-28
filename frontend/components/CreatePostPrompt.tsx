@@ -30,8 +30,8 @@ export default function CreatePostPrompt({ onPostCreated }: CreatePostPromptProp
 
   return (
     <Card>
-      <CardContent className="p-4">
-        <div className="flex items-center space-x-3">
+      <CardContent className="p-3">
+        <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10">
             <AvatarFallback className="bg-orange-500 text-white">
               {user.username.charAt(0).toUpperCase()}
@@ -39,7 +39,7 @@ export default function CreatePostPrompt({ onPostCreated }: CreatePostPromptProp
           </Avatar>
           <button
             onClick={() => setShowForm(true)}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-full bg-gray-100 hover:bg-white text-left text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-4 py-2 border rounded-full bg-muted hover:bg-accent text-left text-muted-foreground transition-colors"
           >
             Create Post
           </button>

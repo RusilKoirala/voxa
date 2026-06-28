@@ -33,14 +33,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <Link href="/" className="flex items-center justify-center space-x-2 mb-4">
+          <Link href="/" className="flex items-center justify-center gap-2 mb-4">
             <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold text-gray-900">voxa</span>
+            <span className="text-2xl font-bold">voxa</span>
           </Link>
           <CardTitle className="text-xl">Log In</CardTitle>
         </CardHeader>
@@ -76,7 +76,7 @@ export default function LoginPage() {
               {loading ? 'Logging in...' : 'Log In'}
             </Button>
           </form>
-          <p className="text-center mt-6 text-sm text-gray-500">
+          <p className="text-center mt-6 text-sm text-muted-foreground">
             New to voxa?{' '}
             <Link href="/register" className="text-blue-500 hover:text-blue-600 font-medium">
               Sign Up

@@ -49,9 +49,9 @@ export default function CreateCommunityPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center space-x-4">
+    <div className="min-h-screen bg-background">
+      <header className="bg-background border-b">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-4">
           <Link href="/">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="w-5 h-5" />
@@ -71,7 +71,7 @@ export default function CreateCommunityPage() {
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">r/</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">r/</span>
                   <Input
                     id="name"
                     value={name}
@@ -82,16 +82,16 @@ export default function CreateCommunityPage() {
                     required
                   />
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   21 characters max. No spaces. Only letters, numbers, and underscores.
                 </p>
               </div>
 
               <div className="space-y-2">
                 <Label>Community icon (optional)</Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 cursor-pointer transition-colors">
-                  <Image className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-600">Upload image</p>
+                <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-blue-500 cursor-pointer transition-colors">
+                  <Image className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground">Upload image</p>
                 </div>
               </div>
 
@@ -106,7 +106,7 @@ export default function CreateCommunityPage() {
                 />
               </div>
 
-              <div className="flex justify-end space-x-3">
+              <div className="flex justify-end gap-3">
                 <Button
                   type="button"
                   variant="ghost"
@@ -116,7 +116,7 @@ export default function CreateCommunityPage() {
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-blue-500 hover:bg-blue-600"
+                  className="bg-orange-500 hover:bg-orange-600"
                   disabled={loading}
                 >
                   {loading ? 'Creating...' : 'Create community'}
