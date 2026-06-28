@@ -1,13 +1,11 @@
 import { Request, Response } from 'express'
 import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken'
 import { db } from '../db/index.js'
 import { users } from '../db/schema.js'
 import { eq } from 'drizzle-orm'
 import { authenticateToken } from '../middleware/auth.js'
 import { generateToken } from '../utils/jwt.js'
 
-// registerr
 export const register = async (req:Request, res:Response) => 
 {
     try
@@ -46,7 +44,6 @@ export const register = async (req:Request, res:Response) =>
             })
         }
 
-        //HASH THE PASSWORDD
         const passwordHash = await bcrypt.hash(password, 10)
 
         const newUser = await db.insert(users).values({
@@ -62,12 +59,19 @@ export const register = async (req:Request, res:Response) =>
 
         const token = generateToken(newUser[0].id)
 
+        res.cookie('jwt', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            path: '/'
+        })
+
         res.status(201).json({
             success: true,
             message: "User registered successfully",
             data: {
-                user: newUser[0],
-                token
+                user: newUser[0]
             }
         })
         
@@ -81,7 +85,6 @@ export const register = async (req:Request, res:Response) =>
     }
 }
 
-// loginn
 export const login = async (req:Request, res:Response) => 
 {
     try {
@@ -99,12 +102,18 @@ export const login = async (req:Request, res:Response) =>
             eq(users.email, email)
         ).limit(1)
 
-        // check pass
+        if (user.length === 0) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid credentials'
+            })
+        }
+
         const isPasswordValid = await bcrypt.compare(password, user[0].passwordHash)
 
         if(!isPasswordValid) 
         {
-            res.status(401).json({
+            return res.status(401).json({
                 success: false,
                 message: "Invalid credentials"
             })
@@ -114,12 +123,19 @@ export const login = async (req:Request, res:Response) =>
 
         const { passwordHash , ...userWithoutPassword} = user[0]
 
+        res.cookie('jwt', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            path: '/'
+        })
+
         res.status(200).json({
             success: true,
             message: 'Login successful',
             data: {
-                user: userWithoutPassword,
-                token
+                user: userWithoutPassword
             }
         })
     } catch (error) 
@@ -133,7 +149,20 @@ export const login = async (req:Request, res:Response) =>
     }
 }
 
-// get Profileee
+export const logout = async (req: Request, res: Response) => {
+    res.clearCookie('jwt', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/'
+    })
+
+    res.status(200).json({
+        success: true,
+        message: 'Logged out successfully'
+    })
+}
+
 export const getProfile = async (req: Request, res: Response) => { 
     try { 
         

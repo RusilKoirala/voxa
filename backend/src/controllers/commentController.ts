@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { db } from "../db";
-import { comments, posts } from "../db/schema";
+import { db } from "../db/index.js";
+import { comments, posts } from "../db/schema.js";
 
 import {eq, and} from 'drizzle-orm'
 
@@ -78,7 +78,7 @@ export const getCommentsByPost = async (req: Request, res: Response) => {
         )
         res.status(200).json({
             success: true,
-            message: 'Comments fetched successfuly',
+            message: 'Comments fetched successfully',
             data: postComments
         })
     
@@ -102,13 +102,13 @@ export const getCommentById = async (req: Request, res: Response) => {
 
         if(comment.length === 0) {
             return res.status(404).json({
-                succes: false,
+                success: false,
                 message: 'Comment not found'
             })
         }
         res.status(200).json({
             success: true,
-            message: 'Comments fetched successfully',
+            message: 'Comment fetched successfully',
             data: comment[0]
         })
     } catch (error) {
@@ -166,7 +166,7 @@ export const updateComment = async (req:Request, res: Response) => {
         res.status(200).json({
             success: true,
             message: 'Comment updated successfully',
-            data: updateComment[0]
+            data: updatedComment[0]
         })
     } catch (error) {
         console.error('Update comment error:', error);
