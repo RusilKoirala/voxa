@@ -58,7 +58,7 @@ export const votes = pgTable('votes', {
   userId: integer('user_id').notNull().references(() => users.id),
   postId: integer('post_id').references(() => posts.id),
   commentId: integer('comment_id').references(() => comments.id),
-  value: integer('value').notNull(), // 1 for upvote, -1 for downvote
+  value: integer('value').notNull(), 
   createdAt: timestamp('created_at').defaultNow().notNull()
 }, (table) => {
   return {
