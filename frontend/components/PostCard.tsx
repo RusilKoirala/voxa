@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import type { Post } from '@/types'
 import PostVote from './PostVote'
 import { MessageCircle, Share2, Bookmark } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface PostCardProps {
   post: Post
@@ -22,6 +23,21 @@ export default function PostCard({ post }: PostCardProps) {
     if (minutes < 60) return `${minutes}m`
     if (hours < 24) return `${hours}h`
     return `${days}d`
+  }
+
+  const handleShare = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    const url = `${window.location.origin}/post/${post.id}`
+    if (navigator.share) {
+      navigator.share({
+        title: post.title,
+        url: url,
+      }).catch(console.error)
+    } else {
+      navigator.clipboard.writeText(url).then(() => {
+        toast.success('Link copied to clipboard!')
+      })
+    }
   }
 
   const communityName = post.community?.name || 'community'
@@ -84,7 +100,10 @@ export default function PostCard({ post }: PostCardProps) {
               <MessageCircle className="w-4 h-4" />
               <span>Comments</span>
             </button>
-            <button className="flex items-center gap-2 text-muted-foreground hover:bg-accent px-2 py-1 rounded text-xs font-medium">
+            <button
+              onClick={handleShare}
+              className="flex items-center gap-2 text-muted-foreground hover:bg-accent px-2 py-1 rounded text-xs font-medium"
+            >
               <Share2 className="w-4 h-4" />
               <span>Share</span>
             </button>

@@ -1,10 +1,9 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-import { authAPI } from '@/lib/api'
-import type { User } from '@/types'
+import api from '@/lib/api'
+import { User, ApiResponse } from '@/types'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
 
 interface AuthContextType {
   user: User | null
@@ -27,12 +26,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUser = async () => {
     try {
-      const response = await authAPI.getMe()
-      if (response.data.success && response.data.data) {
-        setUser(response.data.data)
+      const response = await api.get<ApiResponse<User>>('/auth/me')
+      console.log('👤 Fetched user:', response.data)
+      setUser(response.data.data!)
+    } catch (error: any) {
+      if (error.response?.status !== 401) {
+        console.error('Failed to fetch user:', error)
       }
-    } catch (error) {
-      console.error('Failed to fetch user:', error)
       setUser(null)
     } finally {
       setLoading(false)
@@ -40,28 +40,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const login = async (email: string, password: string) => {
-    const response = await authAPI.login(email, password)
-    if (response.data.success && response.data.data?.user) {
-      setUser(response.data.data.user)
-      toast.success('Login successful')
-      router.push('/')
-    }
+    const response = await api.post<ApiResponse<{ user: User }>>('/auth/login', { email, password })
+    console.log('✅ Logged in:', response.data)
+    setUser(response.data.data!.user)
+    router.push('/')
   }
 
   const register = async (username: string, email: string, password: string) => {
-    const response = await authAPI.register(username, email, password)
-    if (response.data.success && response.data.data?.user) {
-      setUser(response.data.data.user)
-      toast.success('Registration successful')
-      router.push('/')
-    }
+    const response = await api.post<ApiResponse<{ user: User }>>('/auth/register', { username, email, password })
+    console.log('✅ Registered:', response.data)
+    setUser(response.data.data!.user)
+    router.push('/')
   }
 
   const logout = async () => {
-    await authAPI.logout()
+    await api.post('/auth/logout')
     setUser(null)
     router.push('/')
-    toast.success('Logged out successfully')
   }
 
   return (
@@ -70,6 +65,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     </AuthContext.Provider>
   )
 }
+
+
 
 export function useAuth() {
   const context = useContext(AuthContext)

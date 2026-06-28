@@ -254,3 +254,34 @@ export const getCommunityMembers = async (req: Request, res: Response) => {
     })
   }
 }
+
+export const checkCommunityMembership = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    if (!req.userId) {
+      return res.status(200).json({
+        success: true,
+        data: false,
+      });
+    }
+
+    const membership = await db.select().from(communityMembers).where(
+      and(
+        eq(communityMembers.userId, req.userId),
+        eq(communityMembers.communityId, parseInt(id))
+      )
+    ).limit(1);
+
+    res.status(200).json({
+      success: true,
+      data: membership.length > 0,
+    });
+  } catch (error) {
+    console.error('Check community membership error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+}

@@ -24,6 +24,8 @@ export default function CommunityPage() {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [showPostForm, setShowPostForm] = useState(false)
+  const [isMember, setIsMember] = useState(false)
+  const [membershipLoading, setMembershipLoading] = useState(false)
 
   useEffect(() => {
     fetchData()
@@ -39,6 +41,8 @@ export default function CommunityPage() {
         setCommunity(foundCommunity)
         const postsRes = await postAPI.getByCommunity(foundCommunity.id)
         setPosts(postsRes.data.data || [])
+        // Check membership
+        checkMembership(foundCommunity.id)
       }
     } catch (error) {
       console.error('Failed to fetch data:', error)
@@ -47,13 +51,42 @@ export default function CommunityPage() {
     }
   }
 
+  const checkMembership = async (communityId: number) => {
+    try {
+      const res = await communityAPI.checkMembership(communityId)
+      if (res.data.success) {
+        setIsMember(res.data.data || false)
+      }
+    } catch (error) {
+      console.error('Failed to check membership:', error)
+    }
+  }
+
   const handleJoinCommunity = async () => {
     if (!community) return
+    setMembershipLoading(true)
     try {
       await communityAPI.join(community.id)
+      setIsMember(true)
       toast.success('Joined community!')
     } catch (error) {
       toast.error('Failed to join community')
+    } finally {
+      setMembershipLoading(false)
+    }
+  }
+
+  const handleLeaveCommunity = async () => {
+    if (!community) return
+    setMembershipLoading(true)
+    try {
+      await communityAPI.leave(community.id)
+      setIsMember(false)
+      toast.success('Left community!')
+    } catch (error) {
+      toast.error('Failed to leave community')
+    } finally {
+      setMembershipLoading(false)
     }
   }
 
@@ -98,9 +131,24 @@ export default function CommunityPage() {
                     )}
                   </div>
                   {user && (
-                    <Button className="bg-orange-500 hover:bg-orange-600 h-9" onClick={handleJoinCommunity}>
-                      Join
-                    </Button>
+                    isMember ? (
+                      <Button
+                        variant="ghost"
+                        className="h-9 border"
+                        onClick={handleLeaveCommunity}
+                        disabled={membershipLoading}
+                      >
+                        {membershipLoading ? 'Leaving...' : 'Joined'}
+                      </Button>
+                    ) : (
+                      <Button
+                        className="bg-orange-500 hover:bg-orange-600 h-9"
+                        onClick={handleJoinCommunity}
+                        disabled={membershipLoading}
+                      >
+                        {membershipLoading ? 'Joining...' : 'Join'}
+                      </Button>
+                    )
                   )}
                 </div>
               </CardContent>

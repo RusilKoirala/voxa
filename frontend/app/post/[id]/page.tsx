@@ -9,11 +9,12 @@ import Header from '@/components/layout/Header'
 import Sidebar from '@/components/layout/Sidebar'
 import RightSidebar from '@/components/layout/RightSidebar'
 import PostVote from '@/components/PostVote'
+import CommentVote from '@/components/CommentVote'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { MessageCircle, Share2, Bookmark, ArrowBigUp, ArrowBigDown } from 'lucide-react'
+import { MessageCircle, Share2, Bookmark, X } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function PostDetail() {
@@ -25,6 +26,9 @@ export default function PostDetail() {
   const [loading, setLoading] = useState(true)
   const [commentText, setCommentText] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [replyingTo, setReplyingTo] = useState<number | null>(null)
+  const [replyText, setReplyText] = useState('')
+  const [submittingReply, setSubmittingReply] = useState(false)
 
   const timeAgo = (date: Date) => {
     const diff = new Date().getTime() - new Date(date).getTime()
@@ -75,6 +79,40 @@ export default function PostDetail() {
     }
   }
 
+  const handleSubmitReply = async (parentId: number) => {
+    if (!user) {
+      toast.error('Please login to reply')
+      return
+    }
+    if (!replyText.trim()) return
+    setSubmittingReply(true)
+    try {
+      await commentAPI.create({ content: replyText, postId: Number(id), parentId })
+      toast.success('Reply posted!')
+      setReplyText('')
+      setReplyingTo(null)
+      fetchPost()
+    } catch (error) {
+      toast.error('Failed to post reply')
+    } finally {
+      setSubmittingReply(false)
+    }
+  }
+
+  const handleShare = () => {
+    const url = window.location.href
+    if (navigator.share) {
+      navigator.share({
+        title: post?.title,
+        url: url,
+      }).catch(console.error)
+    } else {
+      navigator.clipboard.writeText(url).then(() => {
+        toast.success('Link copied to clipboard!')
+      })
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -93,6 +131,9 @@ export default function PostDetail() {
 
   const communityName = post.community?.name || 'community'
   const authorName = post.author?.username || 'user'
+
+  const topLevelComments = comments.filter(c => !c.parentId)
+  const replies = comments.filter(c => c.parentId)
 
   return (
     <div className="min-h-screen bg-background">
@@ -141,9 +182,12 @@ export default function PostDetail() {
                   <div className="flex gap-2">
                     <button className="flex items-center gap-2 text-muted-foreground hover:bg-accent px-2 py-1 rounded text-xs font-medium">
                       <MessageCircle className="w-4 h-4" />
-                      <span>Comments</span>
+                      <span>{comments.length} Comments</span>
                     </button>
-                    <button className="flex items-center gap-2 text-muted-foreground hover:bg-accent px-2 py-1 rounded text-xs font-medium">
+                    <button
+                      onClick={handleShare}
+                      className="flex items-center gap-2 text-muted-foreground hover:bg-accent px-2 py-1 rounded text-xs font-medium"
+                    >
                       <Share2 className="w-4 h-4" />
                       <span>Share</span>
                     </button>
@@ -184,40 +228,140 @@ export default function PostDetail() {
             </Card>
 
             <div className="space-y-3">
-              {comments.length > 0 ? (
-                comments.map((comment) => (
-                  <Card key={comment.id} className="p-4">
-                    <div className="flex gap-3">
-                      <div className="flex-shrink-0">
-                        <Avatar className="h-7 w-7">
-                          <AvatarFallback className="bg-blue-500 text-white text-xs">
-                            {'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                          <span className="font-medium text-foreground">u/user</span>
-                          <span>•</span>
-                          <span>{timeAgo(comment.createdAt)}</span>
-                        </div>
-                        <p className="text-sm mb-2">{comment.content}</p>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <button className="hover:text-orange-500">
-                              <ArrowBigUp className="w-4 h-4" />
+              {topLevelComments.length > 0 ? (
+                topLevelComments.map((comment) => (
+                  <div key={comment.id} className="space-y-2">
+                    <Card className="p-4">
+                      <div className="flex gap-3">
+                        <CommentVote
+                          commentId={comment.id}
+                          upvotes={comment.upvotes}
+                          downvotes={comment.downvotes}
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                            <Avatar className="h-6 w-6">
+                              <AvatarFallback className="bg-blue-500 text-white text-xs">
+                                {(comment as any).author?.username?.charAt(0).toUpperCase() || 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="font-medium text-foreground">u/{(comment as any).author?.username || 'user'}</span>
+                            <span>•</span>
+                            <span>{timeAgo(comment.createdAt)}</span>
+                          </div>
+                          <p className="text-sm mb-2">{comment.content}</p>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            <button
+                              onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                              className="hover:text-foreground flex items-center gap-1"
+                            >
+                              Reply
                             </button>
-                            <span className="font-medium">{comment.upvotes - comment.downvotes}</span>
-                            <button className="hover:text-blue-500">
-                              <ArrowBigDown className="w-4 h-4" />
+                            <button
+                              onClick={handleShare}
+                              className="hover:text-foreground flex items-center gap-1"
+                            >
+                              Share
                             </button>
                           </div>
-                          <button className="hover:text-foreground">Reply</button>
-                          <button className="hover:text-foreground">Share</button>
+                          {replyingTo === comment.id && (
+                            <div className="mt-3 flex gap-2">
+                              <Input
+                                value={replyText}
+                                onChange={(e) => setReplyText(e.target.value)}
+                                placeholder="Write a reply..."
+                                className="text-sm h-8"
+                              />
+                              <Button
+                                onClick={() => handleSubmitReply(comment.id)}
+                                disabled={submittingReply || !replyText.trim()}
+                                className="bg-orange-500 hover:bg-orange-600 h-8 text-xs"
+                              >
+                                {submittingReply ? 'Posting...' : 'Reply'}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => {
+                                  setReplyingTo(null)
+                                  setReplyText('')
+                                }}
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  </Card>
+                    </Card>
+
+                    {/* Render replies */}
+                    {replies.filter(reply => reply.parentId === comment.id).length > 0 && (
+                      <div className="ml-10 space-y-2">
+                        {replies.filter(reply => reply.parentId === comment.id).map((reply) => (
+                          <Card key={reply.id} className="p-3">
+                            <div className="flex gap-2">
+                              <CommentVote
+                                commentId={reply.id}
+                                upvotes={reply.upvotes}
+                                downvotes={reply.downvotes}
+                              />
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                                  <Avatar className="h-5 w-5">
+                                    <AvatarFallback className="bg-green-500 text-white text-xs">
+                                      {(reply as any).author?.username?.charAt(0).toUpperCase() || 'U'}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span className="font-medium text-foreground">u/{(reply as any).author?.username || 'user'}</span>
+                                  <span>•</span>
+                                  <span>{timeAgo(reply.createdAt)}</span>
+                                </div>
+                                <p className="text-sm mb-2">{reply.content}</p>
+                                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                  <button
+                                    onClick={() => setReplyingTo(replyingTo === reply.id ? null : reply.id)}
+                                    className="hover:text-foreground flex items-center gap-1"
+                                  >
+                                    Reply
+                                  </button>
+                                </div>
+                                {replyingTo === reply.id && (
+                                  <div className="mt-3 flex gap-2">
+                                    <Input
+                                      value={replyText}
+                                      onChange={(e) => setReplyText(e.target.value)}
+                                      placeholder="Write a reply..."
+                                      className="text-sm h-8"
+                                    />
+                                    <Button
+                                      onClick={() => handleSubmitReply(reply.id)}
+                                      disabled={submittingReply || !replyText.trim()}
+                                      className="bg-orange-500 hover:bg-orange-600 h-8 text-xs"
+                                    >
+                                      {submittingReply ? 'Posting...' : 'Reply'}
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8"
+                                      onClick={() => {
+                                        setReplyingTo(null)
+                                        setReplyText('')
+                                      }}
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 ))
               ) : (
                 <div className="text-center py-8">
