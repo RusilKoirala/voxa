@@ -3,6 +3,7 @@ import { db } from "../db/index.js";
 import { comments, posts } from "../db/schema.js";
 
 import { eq, and } from 'drizzle-orm'
+import { attachUserVoteToComment, attachUserVoteToComments } from '../utils/voteEnrichment.js'
 
 
 export const createComment = async (req: Request, res: Response) => {
@@ -81,10 +82,12 @@ export const getCommentsByPost = async (req: Request, res: Response) => {
             orderBy: (comments, { asc }) => [asc(comments.createdAt)]
         })
 
+        const enriched = await attachUserVoteToComments(postComments, req.userId)
+
         res.status(200).json({
             success: true,
             message: 'Comments fetched successfully',
-            data: postComments
+            data: enriched
         })
 
     } catch (error) {
@@ -114,10 +117,13 @@ export const getCommentById = async (req: Request, res: Response) => {
                 message: 'Comment not found'
             })
         }
+
+        const enriched = await attachUserVoteToComment(comment, req.userId)
+
         res.status(200).json({
             success: true,
             message: 'Comment fetched successfully',
-            data: comment
+            data: enriched
         })
     } catch (error) {
         console.error('Get comment by id error:', error)

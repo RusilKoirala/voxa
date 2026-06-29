@@ -28,8 +28,11 @@ export const votePost = async (req: Request, res: Response) => {
       })
     }
 
+    const postIdNum = parseInt(postId)
+    const numericValue = Number(value)
+
     const post = await db.select().from(posts).where(
-      eq(posts.id, parseInt(postId))
+      eq(posts.id, postIdNum)
     ).limit(1)
 
     if (post.length === 0) {
@@ -42,23 +45,23 @@ export const votePost = async (req: Request, res: Response) => {
     const existingVote = await db.select().from(votes).where(
       and(
         eq(votes.userId, req.userId),
-        eq(votes.postId, parseInt(postId))
+        eq(votes.postId, postIdNum)
       )
     ).limit(1)
 
     if (existingVote.length > 0) {
       await db.update(votes).set({
-        value
+        value: numericValue
       }).where(eq(votes.id, existingVote[0].id))
     } else {
       await db.insert(votes).values({
         userId: req.userId,
-        postId: parseInt(postId),
-        value
+        postId: postIdNum,
+        value: numericValue
       })
     }
 
-    await recalculatePostVotes(parseInt(postId))
+    await recalculatePostVotes(postIdNum)
 
     res.status(200).json({
       success: true,
@@ -99,8 +102,11 @@ export const voteComment = async (req: Request, res: Response) => {
       })
     }
 
+    const commentIdNum = parseInt(commentId)
+    const numericValue = Number(value)
+
     const comment = await db.select().from(comments).where(
-      eq(comments.id, parseInt(commentId))
+      eq(comments.id, commentIdNum)
     ).limit(1)
 
     if (comment.length === 0) {
@@ -113,23 +119,23 @@ export const voteComment = async (req: Request, res: Response) => {
     const existingVote = await db.select().from(votes).where(
       and(
         eq(votes.userId, req.userId),
-        eq(votes.commentId, parseInt(commentId))
+        eq(votes.commentId, commentIdNum)
       )
     ).limit(1)
 
     if (existingVote.length > 0) {
       await db.update(votes).set({
-        value
+        value: numericValue
       }).where(eq(votes.id, existingVote[0].id))
     } else {
       await db.insert(votes).values({
         userId: req.userId,
-        commentId: parseInt(commentId),
-        value
+        commentId: commentIdNum,
+        value: numericValue
       })
     }
 
-    await recalculateCommentVotes(parseInt(commentId))
+    await recalculateCommentVotes(commentIdNum)
 
     res.status(200).json({
       success: true,
@@ -228,14 +234,14 @@ export const removeVoteComment = async (req: Request, res: Response) => {
 }
 
 const recalculatePostVotes = async (postId: number) => {
-  const upvotes = await db.select({ count: sql<number>`count(*)` }).from(votes).where(
+  const upvotes = await db.select({ count: sql<number>`cast(count(*) as integer)` }).from(votes).where(
     and(
       eq(votes.postId, postId),
       eq(votes.value, 1)
     )
   )
 
-  const downvotes = await db.select({ count: sql<number>`count(*)` }).from(votes).where(
+  const downvotes = await db.select({ count: sql<number>`cast(count(*) as integer)` }).from(votes).where(
     and(
       eq(votes.postId, postId),
       eq(votes.value, -1)
@@ -243,20 +249,20 @@ const recalculatePostVotes = async (postId: number) => {
   )
 
   await db.update(posts).set({
-    upvotes: upvotes[0].count,
-    downvotes: downvotes[0].count
+    upvotes: Number(upvotes[0]?.count ?? 0),
+    downvotes: Number(downvotes[0]?.count ?? 0)
   }).where(eq(posts.id, postId))
 }
 
 const recalculateCommentVotes = async (commentId: number) => {
-  const upvotes = await db.select({ count: sql<number>`count(*)` }).from(votes).where(
+  const upvotes = await db.select({ count: sql<number>`cast(count(*) as integer)` }).from(votes).where(
     and(
       eq(votes.commentId, commentId),
       eq(votes.value, 1)
     )
   )
 
-  const downvotes = await db.select({ count: sql<number>`count(*)` }).from(votes).where(
+  const downvotes = await db.select({ count: sql<number>`cast(count(*) as integer)` }).from(votes).where(
     and(
       eq(votes.commentId, commentId),
       eq(votes.value, -1)
@@ -264,7 +270,7 @@ const recalculateCommentVotes = async (commentId: number) => {
   )
 
   await db.update(comments).set({
-    upvotes: upvotes[0].count,
-    downvotes: downvotes[0].count
+    upvotes: Number(upvotes[0]?.count ?? 0),
+    downvotes: Number(downvotes[0]?.count ?? 0)
   }).where(eq(comments.id, commentId))
 }

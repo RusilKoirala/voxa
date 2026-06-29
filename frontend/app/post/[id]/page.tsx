@@ -148,6 +148,7 @@ export default function PostDetail() {
                   postId={post.id}
                   upvotes={post.upvotes}
                   downvotes={post.downvotes}
+                  userVote={post.userVote ?? 0}
                 />
                 <div className="flex-1 p-4">
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
@@ -237,6 +238,7 @@ export default function PostDetail() {
                           commentId={comment.id}
                           upvotes={comment.upvotes}
                           downvotes={comment.downvotes}
+                          userVote={comment.userVote ?? 0}
                         />
                         <div className="flex-1">
                           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
@@ -306,6 +308,7 @@ export default function PostDetail() {
                                 commentId={reply.id}
                                 upvotes={reply.upvotes}
                                 downvotes={reply.downvotes}
+                                userVote={reply.userVote ?? 0}
                               />
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">

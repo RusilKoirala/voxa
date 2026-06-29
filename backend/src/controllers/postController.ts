@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import { db } from '../db/index.js'
 import { posts, communityMembers } from '../db/schema.js'
 import { eq, and } from 'drizzle-orm'
+import { attachUserVoteToPost, attachUserVoteToPosts } from '../utils/voteEnrichment.js'
 
 export const createPost = async (req: Request, res: Response) => {
   try {
@@ -70,10 +71,12 @@ export const getPostsByCommunity = async (req: Request, res: Response) => {
       }
     })
 
+    const enriched = await attachUserVoteToPosts(communityPosts, req.userId)
+
     res.status(200).json({
       success: true,
       message: 'Posts fetched successfully',
-      data: communityPosts
+      data: enriched
     })
   } catch (error) {
     console.error('Get posts by community error:', error)
@@ -103,10 +106,12 @@ export const getPostById = async (req: Request, res: Response) => {
       })
     }
 
+    const enriched = await attachUserVoteToPost(post, req.userId)
+
     res.status(200).json({
       success: true,
       message: 'Post fetched successfully',
-      data: post
+      data: enriched
     })
   } catch (error) {
     console.error('Get post by id error:', error)
@@ -222,10 +227,12 @@ export const getAllPosts = async (req: Request, res: Response) => {
       orderBy: (posts, { desc }) => [desc(posts.createdAt)]
     })
 
+    const enriched = await attachUserVoteToPosts(allPosts, req.userId)
+
     res.status(200).json({
       success: true,
       message: 'All posts fetched successfully',
-      data: allPosts
+      data: enriched
     })
   } catch (error) {
     console.error('Get all posts error:', error)

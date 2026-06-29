@@ -50,6 +50,7 @@ export default function PostCard({ post }: PostCardProps) {
           postId={post.id}
           upvotes={post.upvotes}
           downvotes={post.downvotes}
+          userVote={post.userVote ?? 0}
         />
         <div className="flex-1 p-3">
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">

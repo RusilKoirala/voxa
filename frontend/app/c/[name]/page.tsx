@@ -6,7 +6,6 @@ import Header from '@/components/layout/Header'
 import Sidebar from '@/components/layout/Sidebar'
 import RightSidebar from '@/components/layout/RightSidebar'
 import PostCard from '@/components/PostCard'
-import CreatePostPrompt from '@/components/CreatePostPrompt'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { communityAPI, postAPI } from '@/lib/api'
@@ -25,13 +24,17 @@ export default function CommunityPage() {
   const [loading, setLoading] = useState(true)
   const [showPostForm, setShowPostForm] = useState(false)
   const [isMember, setIsMember] = useState(false)
+  const [isCreator, setIsCreator] = useState(false)
   const [membershipLoading, setMembershipLoading] = useState(false)
 
   useEffect(() => {
+    if (!communityName) return
     fetchData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [communityName])
 
   const fetchData = async () => {
+    setLoading(true)
     try {
       const communitiesRes = await communityAPI.getAll()
       const communities = communitiesRes.data.data || []
@@ -39,10 +42,17 @@ export default function CommunityPage() {
 
       if (foundCommunity) {
         setCommunity(foundCommunity)
+
+        if (user && foundCommunity.creatorId === user.id) {
+          setIsCreator(true)
+          setIsMember(true)
+        } else {
+          setIsCreator(false)
+          await checkMembership(foundCommunity.id)
+        }
+
         const postsRes = await postAPI.getByCommunity(foundCommunity.id)
         setPosts(postsRes.data.data || [])
-        // Check membership
-        checkMembership(foundCommunity.id)
       }
     } catch (error) {
       console.error('Failed to fetch data:', error)
@@ -55,22 +65,34 @@ export default function CommunityPage() {
     try {
       const res = await communityAPI.checkMembership(communityId)
       if (res.data.success) {
-        setIsMember(res.data.data || false)
+        setIsMember(Boolean(res.data.data))
+      } else {
+        setIsMember(false)
       }
-    } catch (error) {
+    } catch (error: any) {
+      // 401 = not logged in → definitely not a member
+      if (error?.response?.status === 401) {
+        setIsMember(false)
+        return
+      }
       console.error('Failed to check membership:', error)
+      setIsMember(false)
     }
   }
 
   const handleJoinCommunity = async () => {
     if (!community) return
+    if (!user) {
+      toast.error('Please sign in to join')
+      return
+    }
     setMembershipLoading(true)
+    setIsMember(true)
     try {
       await communityAPI.join(community.id)
-      setIsMember(true)
-
       toast.success('Joined community!')
     } catch (error) {
+      setIsMember(false)
       toast.error('Failed to join community')
     } finally {
       setMembershipLoading(false)
@@ -78,13 +100,14 @@ export default function CommunityPage() {
   }
 
   const handleLeaveCommunity = async () => {
-    if (!community) return
+    if (!community || isCreator) return
     setMembershipLoading(true)
+    setIsMember(false)
     try {
       await communityAPI.leave(community.id)
-      setIsMember(false)
-      toast.success('Left community!')
+      toast.success('Left community')
     } catch (error) {
+      setIsMember(true)
       toast.error('Failed to leave community')
     } finally {
       setMembershipLoading(false)
@@ -93,6 +116,47 @@ export default function CommunityPage() {
 
   const refreshPosts = () => {
     fetchData()
+  }
+
+  const renderJoinButton = () => {
+    if (!user) {
+      return (
+        <Button
+          variant="outline"
+          className="h-9"
+          onClick={() => toast.message('Sign in to join communities')}
+        >
+          Join
+        </Button>
+      )
+    }
+
+    if (isCreator) {
+      return null
+    }
+
+    if (isMember) {
+      return (
+        <Button
+          variant="outline"
+          className="h-9 border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950"
+          onClick={handleLeaveCommunity}
+          disabled={membershipLoading}
+        >
+          {membershipLoading ? 'Leaving...' : 'Joined'}
+        </Button>
+      )
+    }
+
+    return (
+      <Button
+        className="bg-orange-500 hover:bg-orange-600 h-9"
+        onClick={handleJoinCommunity}
+        disabled={membershipLoading}
+      >
+        {membershipLoading ? 'Joining...' : 'Join'}
+      </Button>
+    )
   }
 
   if (loading) {
@@ -131,26 +195,7 @@ export default function CommunityPage() {
                       <p className="text-sm text-muted-foreground mt-1">{community.description}</p>
                     )}
                   </div>
-                  {user && (
-                    isMember ? (
-                      <Button
-                        variant="ghost"
-                        className="h-9 border"
-                        onClick={handleLeaveCommunity}
-                        disabled={membershipLoading}
-                      >
-                        {membershipLoading ? 'Leaving...' : 'Joined'}
-                      </Button>
-                    ) : (
-                      <Button
-                        className="bg-orange-500 hover:bg-orange-600 h-9"
-                        onClick={handleJoinCommunity}
-                        disabled={membershipLoading}
-                      >
-                        {membershipLoading ? 'Joining...' : 'Join'}
-                      </Button>
-                    )
-                  )}
+                  {renderJoinButton()}
                 </div>
               </CardContent>
             </Card>

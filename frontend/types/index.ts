@@ -28,6 +28,7 @@ export interface Post {
   communityId: number
   upvotes: number
   downvotes: number
+  userVote?: 1 | -1 | 0
   createdAt: Date
   updatedAt: Date
   author?: User
@@ -42,8 +43,10 @@ export interface Comment {
   parentId?: number
   upvotes: number
   downvotes: number
+  userVote?: 1 | -1 | 0
   createdAt: Date
   updatedAt: Date
+  author?: User
 }
 
 export interface ApiResponse<T> {

@@ -17,6 +17,8 @@ interface PostFormProps {
   communityId?: number
 }
 
+
+
 export default function PostForm({ onCancel, onSuccess, communityId }: PostFormProps) {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
