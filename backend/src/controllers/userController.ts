@@ -71,3 +71,43 @@ export const getUserByUsername = async( req: Request, res: Response) => {
         console.error('Get user by username error:', error)
     }
 }
+
+export const updateUserProfile = async (req:Request, res: Response) => {
+    try {
+        const { bio , avatar} = req.body
+        const userId = req.userId
+
+        if (!userId) 
+        {
+            return res.status(401).json({
+                success: false,
+                message: 'Unauthorized'
+            })
+        }
+
+        const updatedUser = await db.update(users).set({
+            bio: bio || undefined,
+            avatar: avatar || undefined,
+            updatedAt: new Date()
+        }).where(eq(users.id, userId)).returning({
+            id: users.id,
+            username: users.username,
+            avatar: users.avatar,
+            bio: users.bio,
+            createdAt: users.createdAt,
+            updatedAt: users.updatedAt
+        })
+
+        res.status(200).json({
+            success: true,
+            message: 'Profile updated successfully',
+            data: updatedUser
+        })
+    } catch (error) {
+        console.error('Update profile error:', error)
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        })
+    }
+}

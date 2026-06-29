@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { db } from '../db/index.js'
 import { posts, communityMembers } from '../db/schema.js'
-import { eq, and } from 'drizzle-orm'
+import { eq, and,sql } from 'drizzle-orm'
 import { attachUserVoteToPost, attachUserVoteToPosts } from '../utils/voteEnrichment.js'
 
 export const createPost = async (req: Request, res: Response) => {
@@ -243,4 +243,60 @@ export const getAllPosts = async (req: Request, res: Response) => {
       message: 'Internal server error'
     })
   }
+}
+
+
+export const getTrendingPosts = async(req:Request, res: Response)=> {
+  try {
+    const { timeRange = 'day', limit=20 } = req.query
+
+    let timeFilter = sql`1=1`
+    const now = new Date()
+
+    if(timeRange === 'day') 
+    {
+      timeFilter = sql`${posts.createdAt} > ${new Date(now.getTime()- 24 * 60 * 60 * 1000)}`
+    } else if (timeRange === 'week') 
+    {
+      timeFilter = sql`${posts.createdAt}> ${new Date(now.getTime()- 7 * 24 * 60 * 60 * 1000)}`
+    } else if (timeRange === 'month') {
+      timeFilter = sql`${posts.createdAt}> ${new Date(now.getTime()- 30 * 24 * 60 * 60 * 1000 )}`
+    }
+
+    const trendingPosts = await db.select({
+      id: posts.id,
+      title: posts.title,
+      content: posts.content,
+      upvotes: posts.upvotes,
+      downvotes: posts.downvotes,
+      createPost: posts.createdAt,
+      authorId: posts.authorId,
+      score: sql<number> `(${posts.upvotes}- ${posts.downvotes}) / EXTRACT(EPOCH FROM (NOW()- ${posts.createdAt}) + INTERNAL '2 hours')`
+    })
+    .from(posts)
+    .where(timeFilter)
+    .orderBy(desc(sql`score`))
+    .limit(Number(limit))
+
+    let enrichedPosts = trendingPosts
+    if (req.userId) 
+    {
+      enrichedPosts = await attachUserVoteToPosts(trendingPosts, req.userId)
+    }
+
+    res.status(200).json({
+      success: true,
+      data: enrichedPosts
+    })
+  } catch (error) {
+    console.error('Trending posts error:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    })
+  }
+}
+
+export const searchPosts = async (req: Request, res: Response) => {
+  
 }
