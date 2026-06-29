@@ -2,10 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import Header from '@/components/layout/Header'
-import Sidebar from '@/components/layout/Sidebar'
-import RightSidebar from '@/components/layout/RightSidebar'
-import PostCard from '@/components/PostCard'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { communityAPI, postAPI } from '@/lib/api'
@@ -13,6 +9,7 @@ import type { Community, Post } from '@/types'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
 import PostForm from '@/components/PostForm'
+import PostCard from '@/components/PostCard'
 
 export default function CommunityPage() {
   const params = useParams()
@@ -161,7 +158,7 @@ export default function CommunityPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <p className="text-muted-foreground">Loading...</p>
       </div>
     )
@@ -169,83 +166,62 @@ export default function CommunityPage() {
 
   if (!community) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <p className="text-muted-foreground">Community not found</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="max-w-5xl mx-auto px-3 sm:px-4 lg:px-6 py-4">
-        <div className="flex gap-4">
-          <Sidebar />
-          <div className="flex-1 max-w-xl space-y-3">
-            {/* Community Header */}
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
-                    {community.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h1 className="text-xl font-bold truncate">r/{community.name}</h1>
-                    {community.description && (
-                      <p className="text-sm text-muted-foreground mt-1">{community.description}</p>
-                    )}
-                  </div>
-                  {renderJoinButton()}
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4">
+      <div className="flex gap-4">
+        <div className="flex-1 max-w-xl space-y-3">
+          {/* Community Header */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
+                  {community.name.charAt(0).toUpperCase()}
                 </div>
-              </CardContent>
-            </Card>
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-xl font-bold truncate">c/{community.name}</h1>
+                  {community.description && (
+                    <p className="text-sm text-muted-foreground mt-1">{community.description}</p>
+                  )}
+                </div>
+                {renderJoinButton()}
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Create Post Prompt */}
-            {user && (
-              showPostForm ? (
-                <PostForm
+          {user && isMember && (
+            <div className="space-y-3">
+              <Button onClick={() => setShowPostForm(!showPostForm)} className="w-full">
+                {showPostForm ? "Cancel" : "Create Post"}
+              </Button>
+              {showPostForm && (
+                <PostForm 
+                  communityId={community.id} 
                   onCancel={() => setShowPostForm(false)}
-                  onSuccess={() => {
-                    setShowPostForm(false)
-                    refreshPosts()
-                  }}
-                  communityId={community.id}
+                  onSuccess={fetchData}
                 />
-              ) : (
-                <Card>
-                  <CardContent className="p-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
-                        {user.username.charAt(0).toUpperCase()}
-                      </div>
-                      <button
-                        onClick={() => setShowPostForm(true)}
-                        className="flex-1 px-4 py-2 border rounded-full bg-muted hover:bg-accent text-left text-muted-foreground transition-colors"
-                      >
-                        Create Post
-                      </button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )
-            )}
+              )}
+            </div>
+          )}
 
-            {/* Posts List */}
-            {posts.length > 0 ? (
-              <div className="space-y-3">
-                {posts.map((post) => (
-                  <PostCard key={post.id} post={{ ...post, community }} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No posts yet. Be the first to post!</p>
-              </div>
-            )}
-          </div>
-          <RightSidebar />
+          {posts.length > 0 ? (
+            <div className="space-y-3">
+              {posts.map((post) => (
+                <PostCard key={post.id} post={post} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No posts yet in this community</p>
+            </div>
+          )}
         </div>
-      </main>
+      </div>
     </div>
   )
 }

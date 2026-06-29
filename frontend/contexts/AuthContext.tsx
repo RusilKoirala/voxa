@@ -21,19 +21,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
-    fetchUser()
+    // Check if user is already loaded from localStorage
+    const cachedUser = localStorage.getItem('voxa_user')
+    if (cachedUser) {
+      try {
+        const userData = JSON.parse(cachedUser)
+        setUser(userData)
+        setLoading(false)
+      } catch (e) {
+        // If parsing fails, fetch fresh data
+        fetchUser()
+      }
+    } else {
+      fetchUser()
+    }
   }, [])
 
   const fetchUser = async () => {
     try {
       const response = await api.get<ApiResponse<User>>('/auth/me')
       console.log('👤 Fetched user:', response.data)
-      setUser(response.data.data!)
+      const userData = response.data.data!
+      setUser(userData)
+      // Cache user in localStorage for faster loading
+      localStorage.setItem('voxa_user', JSON.stringify(userData))
     } catch (error: any) {
       if (error.response?.status !== 401) {
         console.error('Failed to fetch user:', error)
       }
       setUser(null)
+      localStorage.removeItem('voxa_user')
     } finally {
       setLoading(false)
     }
@@ -56,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     await api.post('/auth/logout')
     setUser(null)
+    localStorage.removeItem('voxa_user')
     router.push('/')
   }
 
@@ -69,6 +87,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 
 export function useAuth() {
+
+  
   const context = useContext(AuthContext)
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider')

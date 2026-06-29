@@ -2,9 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import Header from '@/components/layout/Header'
-import Sidebar from '@/components/layout/Sidebar'
-import RightSidebar from '@/components/layout/RightSidebar'
 import PostCard from '@/components/PostCard'
 import CreatePostPrompt from '@/components/CreatePostPrompt'
 import { postAPI, communityAPI } from '@/lib/api'
@@ -43,35 +40,30 @@ export default function Home() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <p className="text-muted-foreground">Loading...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4">
-        <div className="flex gap-4">
-          <Sidebar />
-          <div className="flex-1 max-w-xl space-y-3">
-            {user && <CreatePostPrompt onPostCreated={fetchData} />}
-            {posts.length > 0 ? (
-              <div className="space-y-3">
-                {posts.map((post) => (
-                  <PostCard key={post.id} post={post} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No posts yet. Be the first to post!</p>
-              </div>
-            )}
-          </div>
-          <RightSidebar />
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4">
+      <div className="flex gap-4">
+        <div className="flex-1 max-w-xl space-y-3">
+          {user && <CreatePostPrompt onPostCreated={fetchData} />}
+          {posts.length > 0 ? (
+            <div className="space-y-3">
+              {posts.map((post) => (
+                <PostCard key={post.id} post={post} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No posts yet. Be the first to post!</p>
+            </div>
+          )}
         </div>
-      </main>
+      </div>
     </div>
   )
 }

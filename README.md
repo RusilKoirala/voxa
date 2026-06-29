@@ -8,5 +8,13 @@ I really wanted to know HOW DOES REDDIT WORK?, yes you may be saying its just CR
 
 ## What I learned 
 
-This should be at a blog but sorry I really wanted to share my learning through readme :) . I will tell everyone to make reddit backend one's in their life time. I really understood alot of things in backend through this project. Mainly making GOOD schema, I made 
+This should be at a blog but sorry I really wanted to share my learning through readme :) . I will tell everyone to make reddit backend ones. I really understood alot of things in backend through this project. I understood alot about making schema's and producing relation between them, the way controllers and utils can be used together. 
+
+## Folder structure 
+
+
+
+
+## ABOUT
+
 

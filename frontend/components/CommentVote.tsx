@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/router'
 import { ArrowBigUp, ArrowBigDown } from 'lucide-react'
 
+// prop of comment
 interface CommentVoteProps {
   commentId: number
   upvotes: number
@@ -15,6 +16,8 @@ interface CommentVoteProps {
   userVote?: 1 | -1 | 0
 }
 
+
+// comment 
 export default function CommentVote({ commentId, upvotes, downvotes, userVote= 0 }: CommentVoteProps) {
   const {user} = useAuth()
   const router = useRouter()

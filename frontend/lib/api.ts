@@ -4,6 +4,7 @@ import type { User, Community, Post, Comment, ApiResponse , UserProfile} from '@
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
 
+// Client-side API instance (for browser)
 const api = axios.create({
     baseURL: API_BASE_URL,
     headers: {
@@ -11,6 +12,17 @@ const api = axios.create({
     },
     withCredentials: true
 })
+
+// Server-side API instance (for Next.js server components)
+export function createServerApi(headers?: Record<string, string>) {
+  return axios.create({
+    baseURL: API_BASE_URL,
+    headers: {
+      'Content-Type': 'application/json',
+      ...headers
+    }
+  })
+}
 // User API
 
 export const userAPI = {

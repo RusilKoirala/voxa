@@ -173,6 +173,8 @@ export const updatePost = async (req: Request, res: Response) => {
   }
 }
 
+
+
 export const deletePost = async (req: Request, res: Response) => {
   try {
     const { id } = req.params

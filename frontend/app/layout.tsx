@@ -4,6 +4,9 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "next-themes";
+import Header from "@/components/layout/Header";
+import Sidebar from "@/components/layout/Sidebar";
+import RightSidebar from "@/components/layout/RightSidebar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,14 +21,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-
-
-    
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <AuthProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            {children}
+            <Header />
+            <div className="flex">
+              <Sidebar />
+              <main className="flex-1">{children}</main>
+              <RightSidebar />
+            </div>
             <Toaster />
           </ThemeProvider>
         </AuthProvider>
