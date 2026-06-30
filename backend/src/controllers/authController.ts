@@ -3,9 +3,10 @@ import bcrypt from 'bcrypt'
 import { db } from '../db/index.js'
 import { users } from '../db/schema.js'
 import { eq } from 'drizzle-orm'
-import { authenticateToken } from '../middleware/auth.js'
 import { generateToken } from '../utils/jwt.js'
 
+
+// register user (NOW the controller in my head by writing it alot)
 export const register = async (req:Request, res:Response) => 
 {
     try
@@ -85,6 +86,7 @@ export const register = async (req:Request, res:Response) =>
     }
 }
 
+// login user (EZ )
 export const login = async (req:Request, res:Response) => 
 {
     try {
@@ -149,6 +151,7 @@ export const login = async (req:Request, res:Response) =>
     }
 }
 
+// logout user (REMOVE HIMM)
 export const logout = async (req: Request, res: Response) => {
     res.clearCookie('jwt', {
         httpOnly: true,
@@ -163,9 +166,10 @@ export const logout = async (req: Request, res: Response) => {
     })
 }
 
+// getProfile 
 export const getProfile = async (req: Request, res: Response) => { 
     try { 
-        
+        // we DONT BELIEVE in middleware
         if (!req.userId) 
         { 
             return res.status(401).json({ 

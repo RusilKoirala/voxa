@@ -3,10 +3,13 @@ import { db } from '../db/index.js'
 import { votes, posts, comments } from '../db/schema.js'
 import { eq, and, sql } from 'drizzle-orm'
 
+
+// ---- votePost ---
 export const votePost = async (req: Request, res: Response) => {
   try {
     const { postId, value } = req.body
 
+    // some condition so user dont be naughty
     if (!postId || value === undefined) {
       return res.status(400).json({
         success: false,
@@ -28,6 +31,9 @@ export const votePost = async (req: Request, res: Response) => {
       })
     }
 
+
+
+    // getting some valuee
     const postIdNum = parseInt(postId)
     const numericValue = Number(value)
 
@@ -42,6 +48,7 @@ export const votePost = async (req: Request, res: Response) => {
       })
     }
 
+    // find existing vote
     const existingVote = await db.select().from(votes).where(
       and(
         eq(votes.userId, req.userId),
@@ -49,6 +56,7 @@ export const votePost = async (req: Request, res: Response) => {
       )
     ).limit(1)
 
+    // putting condition on length
     if (existingVote.length > 0) {
       await db.update(votes).set({
         value: numericValue
@@ -61,14 +69,18 @@ export const votePost = async (req: Request, res: Response) => {
       })
     }
 
+    // calculate votes
     await recalculatePostVotes(postIdNum)
 
+
+    // send success message
     res.status(200).json({
       success: true,
       message: 'Vote recorded successfully'
     })
 
   } catch (error) {
+    // send error and log it
     console.error('Vote post error:', error)
     res.status(500).json({
       success: false,
@@ -77,10 +89,13 @@ export const votePost = async (req: Request, res: Response) => {
   }
 }
 
+
+// --- voteComment ---
 export const voteComment = async (req: Request, res: Response) => {
   try {
     const { commentId, value } = req.body
 
+    // again conditionss
     if (!commentId || value === undefined) {
       return res.status(400).json({
         success: false,
@@ -102,6 +117,7 @@ export const voteComment = async (req: Request, res: Response) => {
       })
     }
 
+    // get values
     const commentIdNum = parseInt(commentId)
     const numericValue = Number(value)
 
@@ -116,6 +132,8 @@ export const voteComment = async (req: Request, res: Response) => {
       })
     }
 
+
+    // find existing vote
     const existingVote = await db.select().from(votes).where(
       and(
         eq(votes.userId, req.userId),
@@ -135,14 +153,17 @@ export const voteComment = async (req: Request, res: Response) => {
       })
     }
 
+    // recalcuate
     await recalculateCommentVotes(commentIdNum)
 
+    // send success message
     res.status(200).json({
       success: true,
       message: 'Vote recorded successfully'
     })
 
   } catch (error) {
+    // send error message
     console.error('Vote comment error:', error)
     res.status(500).json({
       success: false,
@@ -151,10 +172,14 @@ export const voteComment = async (req: Request, res: Response) => {
   }
 }
 
+
+// --- removeVote ---
 export const removeVotePost = async (req: Request, res: Response) => {
   try {
+   
     const { postId } = req.params
 
+    // check for useriddd ( cuz u can bypass middleware)
     if (!req.userId) {
       return res.status(401).json({
         success: false,
@@ -162,6 +187,8 @@ export const removeVotePost = async (req: Request, res: Response) => {
       })
     }
 
+
+     // get values
     const vote = await db.select().from(votes).where(
       and(
         eq(votes.userId, req.userId),
@@ -175,15 +202,20 @@ export const removeVotePost = async (req: Request, res: Response) => {
         message: 'Vote not found'
       })
     }
-
+    
+    // quering db to delete votes
     await db.delete(votes).where(eq(votes.id, vote[0].id))
     await recalculatePostVotes(parseInt(postId))
 
+
+    // send status
     res.status(200).json({
       success: true,
       message: 'Vote removed successfully'
     })
   } catch (error) {
+
+    // send error and log it in
     console.error('Remove post vote error:', error)
     res.status(500).json({
       success: false,
@@ -192,6 +224,8 @@ export const removeVotePost = async (req: Request, res: Response) => {
   }
 }
 
+
+// --- removeVoteComment ---
 export const removeVoteComment = async (req: Request, res: Response) => {
   try {
     const { commentId } = req.params
@@ -233,6 +267,7 @@ export const removeVoteComment = async (req: Request, res: Response) => {
   }
 }
 
+// --- recalculate post votees ---
 const recalculatePostVotes = async (postId: number) => {
   const upvotes = await db.select({ count: sql<number>`cast(count(*) as integer)` }).from(votes).where(
     and(
@@ -254,6 +289,7 @@ const recalculatePostVotes = async (postId: number) => {
   }).where(eq(posts.id, postId))
 }
 
+// -- recalculate comment vote --- 
 const recalculateCommentVotes = async (commentId: number) => {
   const upvotes = await db.select({ count: sql<number>`cast(count(*) as integer)` }).from(votes).where(
     and(

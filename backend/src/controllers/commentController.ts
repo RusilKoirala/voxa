@@ -6,6 +6,7 @@ import { eq, and } from 'drizzle-orm'
 import { attachUserVoteToComment, attachUserVoteToComments } from '../utils/voteEnrichment.js'
 
 
+// create comment
 export const createComment = async (req: Request, res: Response) => {
     try {
         const { content, postId, parentId } = req.body
@@ -70,6 +71,7 @@ export const createComment = async (req: Request, res: Response) => {
     }
 }
 
+// get comment by postt (YES POST)
 export const getCommentsByPost = async (req: Request, res: Response) => {
     try {
         const { postId } = req.params
@@ -100,6 +102,7 @@ export const getCommentsByPost = async (req: Request, res: Response) => {
 
 }
 
+// get comment by Id
 export const getCommentById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params

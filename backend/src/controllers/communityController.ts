@@ -3,6 +3,7 @@ import { db } from "../db/index.js";
 import { communities, communityMembers } from "../db/schema.js";
 import { eq, and } from "drizzle-orm";
 
+// create community
 export const createCommunity = async (req: Request, res: Response) => 
 {
     try{
@@ -66,6 +67,7 @@ export const createCommunity = async (req: Request, res: Response) =>
     }
 } 
 
+// get all communites
 export const getAllCommunities = async (req:Request, res:Response) => {
     try {
         const allCommunites = await db.select().from(communities)
@@ -83,6 +85,7 @@ export const getAllCommunities = async (req:Request, res:Response) => {
     }
 }
 
+// get community by id
 export const getCommunityById = async (req:Request, res:Response) => {
     try {
         const {id} = req.params
@@ -113,6 +116,7 @@ export const getCommunityById = async (req:Request, res:Response) => {
     }
 }
 
+// join community
 export const joinCommunity = async (req: Request, res: Response) => {
     try {
         const {id} = req.params
@@ -170,6 +174,7 @@ export const joinCommunity = async (req: Request, res: Response) => {
     }
 }
 
+// leave community
 export const leaveCommunity = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
@@ -233,6 +238,7 @@ export const leaveCommunity = async (req: Request, res: Response) => {
   }
 }
 
+// get community members
 export const getCommunityMembers = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
@@ -255,6 +261,7 @@ export const getCommunityMembers = async (req: Request, res: Response) => {
   }
 }
 
+// check community membership plss
 export const checkCommunityMembership = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;

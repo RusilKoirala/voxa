@@ -1,7 +1,7 @@
 import { pgTable, serial, varchar, text, timestamp, integer, boolean, foreignKey, uniqueIndex } from 'drizzle-orm/pg-core'
 import { relations, sql } from 'drizzle-orm'
 
-// users table
+// users table -- > my design
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   username: varchar('username', { length: 50 }).notNull().unique(),
@@ -13,7 +13,7 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 })
 
-// communities table
+// communities table -- > really good as i thought
 export const communities = pgTable('communities', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 50 }).notNull().unique(),
@@ -39,7 +39,7 @@ export const posts = pgTable('posts', {
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 })
 
-// comments table
+// comments table -- its buggy idk why
 export const comments = pgTable('comments', {
   id: serial('id').primaryKey(),
   content: text('content').notNull(),
@@ -67,7 +67,7 @@ export const votes = pgTable('votes', {
   }
 })
 
-// ommunity members table
+// Community members table
 export const communityMembers = pgTable('community_members', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').notNull().references(() => users.id),
@@ -80,7 +80,7 @@ export const communityMembers = pgTable('community_members', {
   }
 })
 
-// Relations
+// Relations ( uh it was very hard i used ai to give me perspective but written by me :D )
 export const usersRelations = relations(users, ({ many }) => ({
   posts: many(posts),
   comments: many(comments),
