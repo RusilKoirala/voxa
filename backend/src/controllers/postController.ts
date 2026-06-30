@@ -4,6 +4,7 @@ import { posts, communityMembers } from '../db/schema.js'
 import { eq, and,sql, ilike, or } from 'drizzle-orm'
 import { attachUserVoteToPost, attachUserVoteToPosts } from '../utils/voteEnrichment.js'
 
+// create Post
 export const createPost = async (req: Request, res: Response) => {
   try {
     const { title, content, imageUrl, communityId } = req.body
@@ -59,6 +60,7 @@ export const createPost = async (req: Request, res: Response) => {
   }
 }
 
+// get Post by community
 export const getPostsByCommunity = async (req: Request, res: Response) => {
   try {
     const { communityId } = req.params
@@ -87,6 +89,7 @@ export const getPostsByCommunity = async (req: Request, res: Response) => {
   }
 }
 
+// give post by id
 export const getPostById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
@@ -122,6 +125,7 @@ export const getPostById = async (req: Request, res: Response) => {
   }
 }
 
+// update post data
 export const updatePost = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
@@ -174,7 +178,7 @@ export const updatePost = async (req: Request, res: Response) => {
 }
 
 
-
+// delete post
 export const deletePost = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
@@ -219,6 +223,7 @@ export const deletePost = async (req: Request, res: Response) => {
   }
 }
 
+// get all posts
 export const getAllPosts = async (req: Request, res: Response) => {
   try {
     const allPosts = await db.query.posts.findMany({
@@ -245,7 +250,7 @@ export const getAllPosts = async (req: Request, res: Response) => {
   }
 }
 
-
+// get trending posts
 export const getTrendingPosts = async(req:Request, res: Response)=> {
   try {
     const { timeRange = 'day', limit=20 } = req.query
@@ -297,6 +302,7 @@ export const getTrendingPosts = async(req:Request, res: Response)=> {
   }
 }
 
+// search posts
 export const searchPosts = async (req: Request, res: Response) => {
     try {
       const { q, page= 1, limit = 20} = req.query

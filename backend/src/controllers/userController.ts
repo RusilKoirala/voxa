@@ -5,6 +5,7 @@ import { eq, sql, desc, avg } from 'drizzle-orm'
 import { date } from 'drizzle-orm/mysql-core'
 
 
+// get user by username (ex: bob404)
 export const getUserByUsername = async( req: Request, res: Response) => {
     try {
         const { username } = req.params
@@ -73,6 +74,7 @@ export const getUserByUsername = async( req: Request, res: Response) => {
     }
 }
 
+// update user profile (CHANGE NAME, etc)
 export const updateUserProfile = async (req:Request, res: Response) => {
     try {
         const { bio , avatar} = req.body
@@ -113,6 +115,7 @@ export const updateUserProfile = async (req:Request, res: Response) => {
     }
 }
 
+// user activity sender
 export const getUserActivity = async (req: Request, res: Response) => {
     try {
         const { username} = req.params

@@ -31,6 +31,8 @@ app.use('/api/comments',commentRoutes)
 app.use('/api/votes', voteRoutes)
 app.use('/api/users', userRoutes)
 
+
+// Health Route
 app.get('/healthz', (req, res) => {
   res.status(200).json({
     success: true,
@@ -39,9 +41,10 @@ app.get('/healthz', (req, res) => {
 })
 
 
-
+// port
 const PORT = process.env.PORT || 8000
 
+// app listen
 app.listen(PORT, () => {
   console.log(`Server is running in http://localhost:${PORT}`)
 })

@@ -137,6 +137,7 @@ export const getCommentById = async (req: Request, res: Response) => {
     }
 }
 
+// update comment 
 export const updateComment = async (req: Request, res: Response) => {
     try {
         const { id } = req.params
@@ -193,7 +194,7 @@ export const updateComment = async (req: Request, res: Response) => {
     }
 }
 
-
+// delete commentt 
 export const deleteComment = async (req: Request, res: Response) => {
     try {
         const { id } = req.params

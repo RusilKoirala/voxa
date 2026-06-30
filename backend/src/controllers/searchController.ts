@@ -4,6 +4,8 @@ import { db } from '../db/index.js'
 import { posts, comments, users, communities } from '../db/schema.js'
 import { ilike, or, desc, asc, sql } from 'drizzle-orm'
 
+
+// search controllerr
 export const searchAll = async (req: Request, res: Response) => {
   try {
     const { q, type, sort = 'relevance', page = 1, limit = 20 } = req.query

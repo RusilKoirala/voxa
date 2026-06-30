@@ -3,8 +3,8 @@ import { votes } from '../db/schema.js'
 import { and, eq, inArray } from 'drizzle-orm'
 
 /**
- * Attach the current user's vote value to a single post.
- * Returns the post with a `userVote` field (1, -1, or 0 if not voted / unauthenticated).
+ attach the current user's vote value to a single post thenn it
+ returns the post with a `userVote` field (1, -1, or 0 if not voted / unauthenticatedd
  */
 export const attachUserVoteToPost = async <T extends { id: number }>(
   post: T,
@@ -24,8 +24,8 @@ export const attachUserVoteToPost = async <T extends { id: number }>(
 }
 
 /**
- * Batch version: attaches `userVote` to each post in a single query.
- * Avoids the N+1 problem when listing many posts.
+ batch version: attaches `userVote` to each post in a single query and 
+ avoids the N+1 problem when listing many postss
  */
 export const attachUserVoteToPosts = async <T extends { id: number }>(
   postList: T[],
@@ -54,9 +54,8 @@ export const attachUserVoteToPosts = async <T extends { id: number }>(
   }))
 }
 
-/**
- * Attach the current user's vote to a single comment.
- */
+
+// attach the current user's vote to a single comment.
 export const attachUserVoteToComment = async <T extends { id: number }>(
   comment: T,
   userId: number | undefined
@@ -74,9 +73,8 @@ export const attachUserVoteToComment = async <T extends { id: number }>(
   return { ...comment, userVote: (existing[0]?.value as 1 | -1 | 0) ?? 0 }
 }
 
-/**
- * Batch version: attaches `userVote` to each comment in a single query.
- */
+
+// batch version attaches `userVote` to each comment in a single query
 export const attachUserVoteToComments = async <T extends { id: number }>(
   commentList: T[],
   userId: number | undefined
