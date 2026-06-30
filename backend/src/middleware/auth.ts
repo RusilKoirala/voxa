@@ -9,6 +9,8 @@ declare global {
   }
 }
 
+
+// auth token
 export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
   const token = req.cookies?.jwt || req.cookies?.token
 
