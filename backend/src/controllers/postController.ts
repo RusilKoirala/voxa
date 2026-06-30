@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { db } from '../db/index.js'
 import { posts, communityMembers } from '../db/schema.js'
-import { eq, and,sql } from 'drizzle-orm'
+import { eq, and,sql, ilike, or } from 'drizzle-orm'
 import { attachUserVoteToPost, attachUserVoteToPosts } from '../utils/voteEnrichment.js'
 
 export const createPost = async (req: Request, res: Response) => {
@@ -298,5 +298,56 @@ export const getTrendingPosts = async(req:Request, res: Response)=> {
 }
 
 export const searchPosts = async (req: Request, res: Response) => {
-  
+    try {
+      const { q, page= 1, limit = 20} = req.query
+      const offset = (Number(page) - 1)*Number(limit)
+
+      if (!q || typeof q !== 'string') 
+      {
+        return res.status(400).json({
+          success: false,
+          message: 'Search query is required'
+        })
+      }
+
+      const searchTerm = `%${q}%`
+      
+      const results = await db.select()
+        .from(posts)
+        .where(
+          or(
+            ilike(posts.title, searchTerm),
+            ilike(posts.content, searchTerm)
+          )
+        ).limit(Number(limit))
+        .offset(offset)
+        .orderBy(desc(posts.createdAt))
+
+        const total = await db.select({ count: count() })
+          .from(posts)
+          .where(
+          or(
+            ilike(posts.title, searchTerm),
+            ilike(posts.content, searchTerm)
+          )
+        )
+
+        res.status(200).json({
+          success: true,
+          data: {
+            results,
+            pagination: {
+            page: Number(page),
+            limit: Number(limit),
+            total: total[0].count
+          }
+        }
+      })
+    } catch (error) {
+      console.error('Search error:', error)
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+      })
+    }
 }
