@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { db } from '../db/index.js'
 import { posts, communityMembers } from '../db/schema.js'
-import { eq, and,sql, ilike, or } from 'drizzle-orm'
+import { eq, and,sql, ilike, or, desc, count } from 'drizzle-orm'
 import { attachUserVoteToPost, attachUserVoteToPosts } from '../utils/voteEnrichment.js'
 
 // create Post
@@ -263,41 +263,39 @@ export const getTrendingPosts = async(req:Request, res: Response)=> {
       timeFilter = sql`${posts.createdAt} > ${new Date(now.getTime()- 24 * 60 * 60 * 1000)}`
     } else if (timeRange === 'week') 
     {
-      timeFilter = sql`${posts.createdAt}> ${new Date(now.getTime()- 7 * 24 * 60 * 60 * 1000)}`
+      timeFilter = sql`${posts.createdAt} > ${new Date(now.getTime()- 7 * 24 * 60 * 60 * 1000)}`
     } else if (timeRange === 'month') {
-      timeFilter = sql`${posts.createdAt}> ${new Date(now.getTime()- 30 * 24 * 60 * 60 * 1000 )}`
+      timeFilter = sql`${posts.createdAt} > ${new Date(now.getTime()- 30 * 24 * 60 * 60 * 1000)}`
     }
 
-    const trendingPosts = await db.select({
-      id: posts.id,
-      title: posts.title,
-      content: posts.content,
-      upvotes: posts.upvotes,
-      downvotes: posts.downvotes,
-      createPost: posts.createdAt,
-      authorId: posts.authorId,
-      score: sql<number> `(${posts.upvotes}- ${posts.downvotes}) / EXTRACT(EPOCH FROM (NOW()- ${posts.createdAt}) + INTERNAL '2 hours')`
+    // simpler trending algorithm - use db.query to avoid the orderSelectedFields error!
+    const trendingPosts = await db.query.posts.findMany({
+      where: timeFilter,
+      with: {
+        author: true,
+        community: true
+      },
+      limit: Number(limit),
+      orderBy: (posts, { desc }) => desc(posts.upvotes)
     })
-    .from(posts)
-    .where(timeFilter)
-    .orderBy(desc(sql`score`))
-    .limit(Number(limit))
 
-    let enrichedPosts = trendingPosts
+    // add user vote info if logged in
+    let finalPosts = trendingPosts
     if (req.userId) 
     {
-      enrichedPosts = await attachUserVoteToPosts(trendingPosts, req.userId)
+      finalPosts = await attachUserVoteToPosts(trendingPosts, req.userId)
     }
 
     res.status(200).json({
       success: true,
-      data: enrichedPosts
+      message: 'trending posts fetched! :D',
+      data: finalPosts
     })
   } catch (error) {
-    console.error('Trending posts error:', error)
+    console.error('trending posts error:', error)
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'internal server error :('
     })
   }
 }

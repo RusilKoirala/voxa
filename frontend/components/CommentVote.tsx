@@ -1,14 +1,11 @@
 'use client'
 
-
 import { useState, useEffect } from 'react'
 import { voteAPI } from '@/lib/api'
 import { toast } from 'sonner'
 import { useAuth } from '@/contexts/AuthContext'
-import { useRouter } from 'next/router'
 import { ArrowBigUp, ArrowBigDown } from 'lucide-react'
 
-// prop of comment
 interface CommentVoteProps {
   commentId: number
   upvotes: number
@@ -16,11 +13,8 @@ interface CommentVoteProps {
   userVote?: 1 | -1 | 0
 }
 
-
-// comment 
 export default function CommentVote({ commentId, upvotes, downvotes, userVote= 0 }: CommentVoteProps) {
   const {user} = useAuth()
-  const router = useRouter()
   const [currentUpvotes, setCurrentUpvotes] = useState(upvotes)
   const [currentDownvotes, setCurrentDownvotes] = useState(downvotes)
   const [loading, setLoading] = useState(false)
@@ -30,11 +24,9 @@ export default function CommentVote({ commentId, upvotes, downvotes, userVote= 0
   useEffect(()=> { setCurrentDownvotes(downvotes)}, [downvotes])
   useEffect(()=> { setVoteState(userVote)}, [userVote])
 
-
-  const handleVote = async (value: number) => {
-    if (!user) 
-    {
-      toast.error('Please login')
+  const handleVote = async (value: 1 | -1) => {
+    if (!user) {
+      toast.error('please login to vote :(')
       return
     }
     if (loading) return
@@ -43,7 +35,7 @@ export default function CommentVote({ commentId, upvotes, downvotes, userVote= 0
     const next = prev === value ? 0 : value
 
     let upDelta = 0
-    let downDelta = prev === value ? 0: value
+    let downDelta = 0
 
     if( prev === 1) upDelta -= 1
     if( prev === -1) downDelta -= 1
@@ -56,18 +48,18 @@ export default function CommentVote({ commentId, upvotes, downvotes, userVote= 0
     setLoading(true)
 
     try {
-      if (next === 0) 
-      {
+      if (next === 0) {
         await voteAPI.removeCommentVote(commentId)
-      }
-      else {
+        toast.success('vote removed!')
+      } else {
         await voteAPI.voteComment(commentId, next)
+        toast.success('voted! :D')
       }
-    } catch (error) {
+    } catch (error: any) {
       setVoteState(prev)
       setCurrentUpvotes(u => u - upDelta)
       setCurrentDownvotes(d => d - downDelta)
-      toast.error(error?.response?.data?.message || 'Failed to vote')
+      toast.error(error?.response?.data?.message || 'failed to vote :(')
     } finally {
       setLoading(false)
     }

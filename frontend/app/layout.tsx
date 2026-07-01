@@ -5,8 +5,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "next-themes";
 import Header from "@/components/layout/Header";
-import Sidebar from "@/components/layout/Sidebar";
-import RightSidebar from "@/components/layout/RightSidebar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,11 +24,7 @@ export default function RootLayout({
         <AuthProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <Header />
-            <div className="flex">
-              <Sidebar />
-              <main className="flex-1">{children}</main>
-              <RightSidebar />
-            </div>
+            <main>{children}</main>
             <Toaster />
           </ThemeProvider>
         </AuthProvider>

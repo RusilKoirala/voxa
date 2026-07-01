@@ -173,9 +173,9 @@ export default function CommunityPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4">
+    <div className="max-w-5xl mx-auto px-3 sm:px-4 lg:px-6 py-4">
       <div className="flex gap-4">
-        <div className="flex-1 max-w-xl space-y-3">
+        <div className="flex-1 space-y-3">
           {/* Community Header */}
           <Card>
             <CardContent className="p-4">

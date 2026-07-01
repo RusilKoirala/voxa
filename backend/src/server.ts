@@ -12,6 +12,7 @@ import postRoutes from './routes/post'
 import commentRoutes from './routes/comment'
 import voteRoutes from './routes/vote'
 import userRoutes from './routes/user'
+import searchRoutes from './routes/search'
 
 const app = express()
 
@@ -30,6 +31,7 @@ app.use('/api/posts', postRoutes)
 app.use('/api/comments',commentRoutes)
 app.use('/api/votes', voteRoutes)
 app.use('/api/users', userRoutes)
+app.use('/api/search', searchRoutes)
 
 
 // Health Route

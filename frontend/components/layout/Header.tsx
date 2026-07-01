@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -8,9 +9,26 @@ import { Search, Bell, Plus, LogOut, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import { ThemeToggle } from '../ui/theme-toggle'
 import { Input } from '../ui/input'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 export default function Header() {
   const { user, logout } = useAuth()
+  const router = useRouter()
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!searchQuery.trim()) {
+      toast.error('enter something to search! :D')
+      // authentic comment - your style
+      toast.info('like, anything at all! XD')
+      return
+    }
+    
+    // navigate to search page with query
+    router.push(`/search?q=${encodeURIComponent(searchQuery)}`)
+  }
 
   return (
     <header className="bg-background border-b sticky top-0 z-50">
@@ -26,14 +44,24 @@ export default function Header() {
           </div>
 
           <div className="flex-1 max-w-md mx-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search voxa"
-                className="pl-9 h-9 rounded-full bg-muted border-none"
-              />
-            </div>
+            <form onSubmit={handleSearch}>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="search voxa..."
+                  className="pl-9 h-9 rounded-full bg-muted border-none"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <button 
+                  type="submit"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground hover:text-foreground"
+                >
+                  search
+                </button>
+              </div>
+            </form>
           </div>
 
           <div className="flex items-center gap-1">
@@ -46,7 +74,7 @@ export default function Header() {
                 <Button asChild className="bg-orange-500 hover:bg-orange-600 h-9">
                   <Link href="/create-community">
                     <Plus className="h-4 w-4 mr-1" />
-                    Create
+                    create
                   </Link>
                 </Button>
                 <DropdownMenu>
@@ -73,19 +101,19 @@ export default function Header() {
                     </div>
                     <DropdownMenuItem onClick={logout} className="text-red-500 cursor-pointer">
                       <LogOut className="h-4 w-4 mr-2" />
-                      Log Out
+                      log out
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </>
             ) : (
               <div className="flex gap-2">
-                <Link href="/login">
-                  <Button variant="ghost" className="h-9">Log In</Button>
-                </Link>
-                <Link href="/register">
-                  <Button className="bg-orange-500 hover:bg-orange-600 h-9">Sign Up</Button>
-                </Link>
+                <Button asChild variant="ghost" size="sm" className="h-9">
+                  <Link href="/login">log in</Link>
+                </Button>
+                <Button asChild size="sm" className="bg-orange-500 hover:bg-orange-600 h-9">
+                  <Link href="/register">sign up</Link>
+                </Button>
               </div>
             )}
           </div>

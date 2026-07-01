@@ -23,17 +23,6 @@ router.get('/', getAllPosts)
 // get community by id (I LOVE COMMUNITES)
 router.get('/community/:communityId', getPostsByCommunity)
 
-
-// post by id
-router.get('/:id',  getPostById)
-
-// update the post
-router.put('/:id', authenticateToken, updatePost)
-
-
-// delete the post
-router.delete('/:id', authenticateToken, deletePost)
-
 // send trending post
 router.get('/trending', getTrendingPosts)
 
@@ -42,5 +31,14 @@ router.get('/search', searchPosts)
 
 // get users activityy
 router.get('/:username/activity', getUserActivity)
+
+// post by id
+router.get('/:id',  getPostById)
+
+// update the post
+router.put('/:id', authenticateToken, updatePost)
+
+// delete the post
+router.delete('/:id', authenticateToken, deletePost)
 
 export default router

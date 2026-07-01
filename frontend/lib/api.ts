@@ -89,7 +89,20 @@ export const postAPI = {
         api.put<ApiResponse<Post>>(`/posts/${id}`, data),
 
     delete: (id: number) =>
-        api.delete<ApiResponse<void>>(`/posts/${id}`)
+        api.delete<ApiResponse<void>>(`/posts/${id}`),
+
+    // sorting endpoints - like reddit has
+    getHot: () =>
+        api.get<ApiResponse<Post[]>>('/posts/trending?timeRange=day'),
+
+    getNew: () =>
+        api.get<ApiResponse<Post[]>>('/posts?sort=new'),
+
+    getTop: () =>
+        api.get<ApiResponse<Post[]>>('/posts/trending?timeRange=week'),
+
+    getRising: () =>
+        api.get<ApiResponse<Post[]>>('/posts/trending?timeRange=day&limit=10')
 }
 
 // Comment API
@@ -123,6 +136,20 @@ export const voteAPI = {
 
     removeCommentVote: (commentId: number) =>
         api.delete<ApiResponse<void>>(`/votes/comment/${commentId}`)
+}
+
+// Search API - for searching posts, comments, users, communities
+export const searchAPI = {
+    searchAll: (query: string) =>
+        api.get<ApiResponse<{
+            posts: Post[],
+            comments: Comment[],
+            users: User[],
+            communities: Community[]
+        }>>(`/search?q=${encodeURIComponent(query)}`),
+    
+    searchPosts: (query: string) =>
+        api.get<ApiResponse<Post[]>>(`/posts/search?q=${encodeURIComponent(query)}`)
 }
 
 export default api

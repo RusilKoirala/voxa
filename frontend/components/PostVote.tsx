@@ -6,9 +6,6 @@ import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
 import { ArrowBigUp, ArrowBigDown } from 'lucide-react'
 
-
-
-
 interface PostVoteProps {
   postId: number
   upvotes: number
@@ -30,19 +27,17 @@ export default function PostVote({ postId, upvotes, downvotes, userVote=0 }: Pos
 
   const handleVote = async (value: 1 | -1) => {
     if (!user) {
-      toast.error("Please login to vote")
+      toast.error("please login to vote :(")
       return
     }
 
     if (loading) return
 
     // optimistic update
-
     const prev = voteState
     const next = prev === value ? 0 : value
 
-
-    let upDelta = 0 // CHANGEE
+    let upDelta = 0
     let downDelta = 0 
 
     if (prev === 1) upDelta -= 1
@@ -56,18 +51,18 @@ export default function PostVote({ postId, upvotes, downvotes, userVote=0 }: Pos
     setLoading(true)
 
     try {
-      if (next === 0) 
-      {
+      if (next === 0) {
         await voteAPI.removePostVote(postId)
-        toast.success('Voted removed')
+        toast.success('vote removed!')
       } else {
         await voteAPI.votePost(postId, next)
+        toast.success('voted! :D')
       }
     } catch (error: any) {
       setVoteState(prev)
       setCurrentUpvotes(u => u - upDelta)
       setCurrentDownvotes(d => d - downDelta)
-      toast.error(error?.response?.data?.message || 'Failed to vote')
+      toast.error(error?.response?.data?.message || 'failed to vote :(')
     } finally {
       setLoading(false)
     }
@@ -76,7 +71,7 @@ export default function PostVote({ postId, upvotes, downvotes, userVote=0 }: Pos
   const score = currentUpvotes - currentDownvotes
 
   return (
-    <div className='flex flex-col items-center gap-1 bg-muted p-2 rounded-l-md border-r'>
+    <div className='flex flex-col items-center gap-1 bg-muted/50 p-2 rounded-l-md border-r'>
       <button 
         onClick={()=> handleVote(1)}
         disabled={loading}
@@ -93,8 +88,8 @@ export default function PostVote({ postId, upvotes, downvotes, userVote=0 }: Pos
         onClick={()=> handleVote(-1)}
         disabled={loading}
         aria-label='Downvote'
-        className={`p-1 rounded transition-colors disabled:opactiy-50 ${
-          voteState === -1 ? 'text-blue-500' : 'text-muted-foreground hover:text-blue-500 hover:bg-accents'
+        className={`p-1 rounded transition-colors disabled:opacity-50 ${
+          voteState === -1 ? 'text-blue-500' : 'text-muted-foreground hover:text-blue-500 hover:bg-accent'
           }`}
         >
           <ArrowBigDown className={`w-6 h-6 ${voteState === -1 ? 'fill-blue-500' : ''}`}/>

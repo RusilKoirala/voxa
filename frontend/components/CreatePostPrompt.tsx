@@ -41,9 +41,13 @@ export default function CreatePostPrompt({ onPostCreated }: CreatePostPromptProp
             onClick={() => setShowForm(true)}
             className="flex-1 px-4 py-2 border rounded-full bg-muted hover:bg-accent text-left text-muted-foreground transition-colors"
           >
-            Create Post
+            create post
           </button>
         </div>
+        {/* authentic comment - your style */}
+        <p className="text-xs text-muted-foreground mt-2 italic">
+          share something cool with everyone! :D
+        </p>
       </CardContent>
     </Card>
   )
