@@ -1,32 +1,32 @@
-import { Resend } from "resend";
+import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export const sendVerificationEmail = async (email: string, verificationUrl: string) => {
-    await resend.emails.send({
-        from: "Voxa <no-reply@rusilkoirala.com.np>",
-        to: [email],
-        subject: "Verify your email for Voxa",
-        html: `
-            <h1> Welcome to Voxa! </h1>
-            <p> Please verify your email by clicking the link below: </p>
-            <a href="${verificationUrl}">Verify Email</a>
-            <p> This link will expire in 24 hours :)</p>
-        `
-    })
+  await resend.emails.send({
+    from: 'Voxa <no-reply@rusilkoirala.com.np>',
+    to: [email],
+    subject: 'Verify your Voxa email',
+    html: `
+      <h1>Welcome to Voxa!</h1>
+      <p>Click the link below to verify your email address:</p>
+      <a href="${verificationUrl}">${verificationUrl}</a>
+      <p>This link expires in 24 hours.</p>
+    `
+  })
 }
 
 export const sendPasswordResetEmail = async (email: string, resetUrl: string) => {
-    await resend.emails.send({
-        from: "Voxa <no-reply@rusilkoirala.com.np>",
-        to: [email],
-        subject: "Reset your password for Voxa",
-        html: `
-            <h1> Reset your password for Voxa </h1>
-            <p> Please reset your password by clicking the link below: </p>
-            <a href="${resetUrl}">Reset Password</a>
-            <p> This link will expire in 1 hour :)</p>
-        `
-    })
+  await resend.emails.send({
+    from: 'Voxa <no-reply@rusilkoirala.com.np>',
+    to: [email],
+    subject: 'Reset your Voxa password',
+    html: `
+      <h1>Password Reset Request</h1>
+      <p>Click the link below to reset your password:</p>
+      <a href="${resetUrl}">${resetUrl}</a>
+      <p>This link expires in 1 hour.</p>
+      <p>If you didn't request this, you can ignore this email.</p>
+    `
+  })
 }

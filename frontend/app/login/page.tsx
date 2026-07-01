@@ -22,9 +22,12 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      await login(email, password)
-      toast.success('Login successful')
-      router.push('/')
+      const result = await login(email, password)
+      if (result.needsVerification) {
+        router.push(`/verify-required?email=${encodeURIComponent(email)}`)
+      } else {
+        toast.success('Login successful')
+      }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Login failed')
     } finally {

@@ -4,6 +4,7 @@ export interface User {
   email: string
   avatar?: string
   bio?: string
+  isVerified: boolean
   createdAt: Date
   updatedAt: Date
 }

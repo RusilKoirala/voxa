@@ -4,8 +4,8 @@ import { db } from '../db/index.js'
 import { users } from '../db/schema.js'
 import { eq } from 'drizzle-orm'
 import { generateToken } from '../utils/jwt.js'
-import {sendVerificationEmail} from '../utils/email.js'
-
+import { sendVerificationEmail } from '../utils/email.js'
+import crypto from 'crypto'
 
 // register user (NOW the controller in my head by writing it alot)
 export const register = async (req:Request, res:Response) => 
@@ -48,14 +48,14 @@ export const register = async (req:Request, res:Response) =>
 
         const passwordHash = await bcrypt.hash(password, 10)
         const verificationToken = crypto.randomBytes(32).toString('hex')
-        const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000) 
+        const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
 
         const newUser = await db.insert(users).values({
             username,
             email,
-            passwordHash, 
+            passwordHash,
             verificationToken,
-            verificationTokenExpires,
+            verificationTokenExpires
         }).returning({
             id: users.id,
             username: users.username,
@@ -63,6 +63,7 @@ export const register = async (req:Request, res:Response) =>
             createdAt: users.createdAt,
         })
 
+        // send verification email
         const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`
         await sendVerificationEmail(email, verificationUrl)
 
@@ -78,7 +79,7 @@ export const register = async (req:Request, res:Response) =>
 
         res.status(201).json({
             success: true,
-            message: "User registered successfully",
+            message: "User registered successfully! Check your email for verification.",
             data: {
                 user: newUser[0]
             }
@@ -129,6 +130,15 @@ export const login = async (req:Request, res:Response) =>
             })
         }
 
+        // check if email is verified
+        if (!user[0].isVerified) {
+            return res.status(403).json({
+                success: false,
+                message: 'Please verify your email first',
+                needsVerification: true
+            })
+        }
+
         const token = generateToken(user[0].id)
 
         const { passwordHash , ...userWithoutPassword} = user[0]
@@ -162,16 +172,17 @@ export const login = async (req:Request, res:Response) =>
 // verify email
 export const verifyEmail = async (req: Request, res: Response) => {
     try {
-        const { token} = req.query
+        const { token } = req.query
 
-        if (!token || typeof token !== 'string') {
+        if (!token) {
             return res.status(400).json({
                 success: false,
                 message: 'Verification token is required'
             })
         }
+
         const user = await db.select().from(users).where(
-            eq(users.verificationToken, token)
+            eq(users.verificationToken, token as string)
         ).limit(1)
 
         if (user.length === 0) {
@@ -179,34 +190,92 @@ export const verifyEmail = async (req: Request, res: Response) => {
                 success: false,
                 message: 'Invalid verification token'
             })
-        // check if token is expired
+        }
 
+        // check if token expired
         if (user[0].verificationTokenExpires && new Date() > user[0].verificationTokenExpires) {
             return res.status(400).json({
                 success: false,
-                message: 'Verification token has expired'
+                message: 'Verification token expired'
             })
         }
 
+        // update user
         await db.update(users).set({
             isVerified: true,
             verificationToken: null,
-            verificationTokenExpires: null,
+            verificationTokenExpires: null
         }).where(eq(users.id, user[0].id))
 
         res.status(200).json({
             success: true,
-            message: 'Email verified successfully'
+            message: 'Email verified successfully!'
         })
-        }
+
     } catch (error) {
-        console.error('Email verification error:', error)
+        console.error('Verify email error:', error)
         res.status(500).json({
             success: false,
             message: 'Internal server error'
         })
     }
 }
+
+// resend verification email
+export const resendVerificationEmail = async (req: Request, res: Response) => {
+    try {
+        const { email } = req.body
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email is required'
+            })
+        }
+
+        const user = await db.select().from(users).where(
+            eq(users.email, email)
+        ).limit(1)
+
+        if (user.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            })
+        }
+
+        if (user[0].isVerified) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email already verified'
+            })
+        }
+
+        const verificationToken = crypto.randomBytes(32).toString('hex')
+        const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000)
+
+        await db.update(users).set({
+            verificationToken,
+            verificationTokenExpires
+        }).where(eq(users.id, user[0].id))
+
+        const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`
+        await sendVerificationEmail(email, verificationUrl)
+
+        res.status(200).json({
+            success: true,
+            message: 'Verification email resent!'
+        })
+
+    } catch (error) {
+        console.error('Resend verification email error:', error)
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        })
+    }
+}
+
 // logout user (REMOVE HIMM)
 export const logout = async (req: Request, res: Response) => {
     res.clearCookie('jwt', {
@@ -240,6 +309,7 @@ export const getProfile = async (req: Request, res: Response) => {
             email: users.email, 
             avatar: users.avatar, 
             bio: users.bio, 
+            isVerified: users.isVerified,
             createdAt: users.createdAt, 
             updatedAt: users.updatedAt, 
         }).from(users).where(eq(users.id, req.userId)).limit(1) 
@@ -265,58 +335,4 @@ export const getProfile = async (req: Request, res: Response) => {
             message: 'Internal server error' 
         }) 
     } 
-}
-
-
-export const resendVerificationEmail = async (req: Request, res: Response) => {
-    try {
-        const { email } = req.body
-
-        if (!email) {
-            return res.status(400).json({
-                success: false,
-                message: 'Email is required'
-            })
-        }
-
-        const user = await db.select().from(users).where(
-            eq(users.email, email)
-        ).limit(1)
-
-        if (user.length === 0) 
-        {
-            return res.status(404).json({
-                success: false,
-                message: 'User not found'
-            })
-        }
-
-        if (user[0].isVerified) {
-            return res.status(400).json({
-                success: false,
-                message: 'Email is already verified',
-        })
-        const verificationToken = crypto.randomBytes(32).tostring('hex')
-        const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000)
-
-        await db.update(users).set({
-            verificationToken,
-            verificationTokenExpires,
-        }).where(eq(users.id, user[0].id))
-
-        const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`
-        await sendVerificationEmail(email, verificationUrl)
-
-        res.status(200).json({
-            success: true,
-            message: 'Verification email resent successfully'
-        })
-    }
-    } catch (error) {
-        console.error('Resend verification email error:', error)
-        res.status(500).json({
-            success: false,
-            message: 'Internal server error'
-        })
-    }
 }
