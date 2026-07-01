@@ -2,6 +2,8 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+
+// send user verification email
 export const sendVerificationEmail = async (email: string, verificationUrl: string) => {
   await resend.emails.send({
     from: 'Voxa <no-reply@rusilkoirala.com.np>',
@@ -16,6 +18,7 @@ export const sendVerificationEmail = async (email: string, verificationUrl: stri
   })
 }
 
+// send user passwrord reset email
 export const sendPasswordResetEmail = async (email: string, resetUrl: string) => {
   await resend.emails.send({
     from: 'Voxa <no-reply@rusilkoirala.com.np>',

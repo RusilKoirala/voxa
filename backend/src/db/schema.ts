@@ -12,6 +12,8 @@ export const users = pgTable('users', {
   isVerified: boolean('is_verified').default(false).notNull(),
   verificationToken: varchar('verification_token', { length: 255 }),
   verificationTokenExpires: timestamp('verification_token_expires'),
+  resetPasswordToken: varchar('reset_password_token', { length: 255 }),
+  resetPasswordTokenExpires: timestamp('reset_password_token_expires'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 })
@@ -27,6 +29,8 @@ export const communities = pgTable('communities', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 })
+
+
 
 // ppost table
 export const posts = pgTable('posts', {

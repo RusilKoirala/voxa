@@ -4,7 +4,7 @@ import { db } from '../db/index.js'
 import { users } from '../db/schema.js'
 import { eq } from 'drizzle-orm'
 import { generateToken } from '../utils/jwt.js'
-import { sendVerificationEmail } from '../utils/email.js'
+import { sendVerificationEmail, sendPasswordResetEmail } from '../utils/email.js'
 import crypto from 'crypto'
 
 // register user (NOW the controller in my head by writing it alot)
@@ -335,4 +335,117 @@ export const getProfile = async (req: Request, res: Response) => {
             message: 'Internal server error' 
         }) 
     } 
+}
+
+
+
+
+// send password reset email
+export const sendPasswordReset = async (req: Request, res: Response) => {
+    try {
+        const { email } = req.body 
+
+        if (!email ) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email is required'
+            })
+        }
+
+        const user = await db.select().from(users).where(
+            eq(users.email, email)
+        ).limit(1)
+
+        if (user.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            })
+        }
+
+        const ressetToken = crypto.randomBytes(32).toString('hex')
+        const resetTokenExpires = new Date(Date.now() + 60 * 60 * 1000) // about 1 hour
+
+        await db.update(users).set({
+            resetPasswordToken: ressetToken,
+            resetPasswordTokenExpires: resetTokenExpires
+        }).where(eq(users.id, user[0].id))
+
+        const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${ressetToken}`
+        await sendPasswordResetEmail(email, resetUrl)
+
+        res.status(200).json({
+            success: true,
+            message: 'Password reset email sent!'
+        })
+
+
+    } catch (error) {
+        console.error('Send password reset email error:', error)
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        })
+    }
+}
+
+// reset password
+export const resetPassword = async (req: Request, res: Response) => {
+    try {
+        const { token, newPassword } = req.body
+
+        if (!token || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'Token and new password are required'
+            })
+
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must be at least 6 characters long'
+            })   
+        }
+
+        const user = await db.select().from(users).where(
+            eq(users.resetPasswordToken, token)
+        ).limit(1)
+
+        if (user.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid reset token'
+            })
+        }
+
+        if (user[0].resetPasswordTokenExpires && new Date() > user[0].resetPasswordTokenExpires) {
+            return res.status(400).json({
+                success: false,
+                message: 'Reset token expired'
+            })
+        }
+
+        const passwordHash = await bcrypt.hash(newPassword, 10)
+
+        await db.update(users).set({
+            passwordHash,
+            resetPasswordToken: null,
+            resetPasswordTokenExpires: null
+        }).where(eq(users.id, user[0].id))
+
+        res.status(200).json({
+
+            success: true,
+            message: 'Password reset successfully!'
+        })
+    
+    } catch (error) {
+        console.error('Reset password error:', error)
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        })
+    }
 }

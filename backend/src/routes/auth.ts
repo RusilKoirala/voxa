@@ -1,5 +1,5 @@
 import express from "express"
-import { register, login, getProfile, logout, verifyEmail, resendVerificationEmail } from "../controllers/authController"
+import { register, login, getProfile, logout, verifyEmail, resendVerificationEmail, sendPasswordReset, resetPassword } from "../controllers/authController"
 import { authenticateToken } from "../middleware/auth"
 
 const router = express.Router()
@@ -20,6 +20,13 @@ router.get('/verify-email', verifyEmail)
 
 // resend verification email
 router.post('/resend-verification', resendVerificationEmail)
+
+// forgot password 
+router.post('/forgot-password', sendPasswordReset)
+
+// reset password
+router.post('/reset-password', resetPassword)
+
 
 // give me your detaill
 router.get('/me', authenticateToken,getProfile)

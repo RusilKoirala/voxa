@@ -15,6 +15,13 @@
       "when": 1782910085988,
       "tag": "0001_useful_masque",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782920009225,
+      "tag": "0002_tricky_the_renegades",
+      "breakpoints": true
     }
   ]
 }
