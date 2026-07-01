@@ -11,6 +11,13 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Voxa",
   description: "A social media platform",
+  icons: {
+    icon: [
+      { url: "/logo.png", sizes: "any" },
+    ],
+    shortcut: ["/logo.png"],
+    apple: ["/logo.png"],
+  },
 };
 
 export default function RootLayout({
@@ -20,6 +27,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/logo.png" />
+      </head>
       <body className={inter.className}>
         <AuthProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>

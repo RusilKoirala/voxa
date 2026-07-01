@@ -36,8 +36,8 @@ export default function Header() {
         <div className="flex items-center justify-between h-12">
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-orange-500 rounded-full flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 text-white" />
+              <div className="w-7 h-7 rounded-full overflow-hidden border-2 border-orange-500">
+                <img src="/logo.png" alt="voxa logo" className="w-full h-full object-cover" />
               </div>
               <span className="text-lg font-bold">voxa</span>
             </Link>
