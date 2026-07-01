@@ -8,6 +8,13 @@
       "when": 1782621486387,
       "tag": "0000_magenta_the_enforcers",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782910085988,
+      "tag": "0001_useful_masque",
+      "breakpoints": true
     }
   ]
 }

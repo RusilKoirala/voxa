@@ -1,5 +1,5 @@
 import express from "express"
-import { register, login, getProfile, logout } from "../controllers/authController"
+import { register, login, getProfile, logout, verifyEmail, resendVerificationEmail } from "../controllers/authController"
 import { authenticateToken } from "../middleware/auth"
 
 const router = express.Router()
@@ -17,5 +17,11 @@ router.post('/logout', logout)
 
 // give me your detaill
 router.get('/me', authenticateToken,getProfile)
+
+// verify email
+router.post('/verify-email', verifyEmail)
+
+// resend verification email 
+router.post('/resend-verification', resendVerificationEmail)
 
 export default router

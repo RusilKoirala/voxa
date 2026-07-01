@@ -9,6 +9,9 @@ export const users = pgTable('users', {
   passwordHash: varchar('password_hash', { length: 255 }).notNull(),
   avatar: varchar('avatar', { length: 500 }),
   bio: text('bio'),
+  isVerified: boolean('is_verified').default(false).notNull(),
+  verificationToken: varchar('verification_token', { length: 255 }),
+  verificationTokenExpires: timestamp('verification_token_expires'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 })
