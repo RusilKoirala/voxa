@@ -7,12 +7,20 @@ import {
   deletePost,
   getAllPosts,
   getTrendingPosts,
-  searchPosts
+  searchPosts,
+  getImageUploadSignature,
+  uploadImage
 } from "../controllers/postController.js"
 import { authenticateToken } from "../middleware/auth.js"
 import { getUserActivity } from "../controllers/userController.js"
 
 const router = express.Router()
+
+// get image upload signature
+router.get('/upload-signature', authenticateToken, getImageUploadSignature)
+
+// upload image
+router.post('/upload-image', authenticateToken, uploadImage)
 
 // create post 
 router.post('/', authenticateToken, createPost)

@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { X, Image } from 'lucide-react'
+import { X, Image, Loader2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { postAPI, communityAPI } from '@/lib/api'
 import type { Community } from '@/types'
@@ -17,8 +17,6 @@ interface PostFormProps {
   communityId?: number
 }
 
-
-
 export default function PostForm({ onCancel, onSuccess, communityId }: PostFormProps) {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -26,6 +24,10 @@ export default function PostForm({ onCancel, onSuccess, communityId }: PostFormP
   const [communities, setCommunities] = useState<Community[]>([])
   const [loading, setLoading] = useState(false)
   const [loadingCommunities, setLoadingCommunities] = useState(true)
+  const [imageUrl, setImageUrl] = useState<string | undefined>()
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetchCommunities()
@@ -47,6 +49,42 @@ export default function PostForm({ onCancel, onSuccess, communityId }: PostFormP
     }
   }
 
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // show preview
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      setImagePreview(e.target?.result as string)
+    }
+    reader.readAsDataURL(file)
+
+    // upload to our backend (no CORS issues!)
+    setUploadingImage(true)
+    try {
+      const response = await postAPI.uploadImage(file)
+      if (response.data.success && response.data.data) {
+        setImageUrl(response.data.data.url)
+        toast.success('Image uploaded!')
+      }
+    } catch (error) {
+      console.error('Upload error:', error)
+      toast.error('Failed to upload image')
+      setImagePreview(null)
+    } finally {
+      setUploadingImage(false)
+    }
+  }
+
+  const removeImage = () => {
+    setImageUrl(undefined)
+    setImagePreview(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim()) {
@@ -63,6 +101,7 @@ export default function PostForm({ onCancel, onSuccess, communityId }: PostFormP
       const response = await postAPI.create({
         title,
         content: content.trim() || undefined,
+        imageUrl,
         communityId: selectedCommunityId
       })
 
@@ -70,6 +109,8 @@ export default function PostForm({ onCancel, onSuccess, communityId }: PostFormP
         toast.success('Post created!')
         setTitle('')
         setContent('')
+        setImageUrl(undefined)
+        setImagePreview(null)
         onCancel()
         if (onSuccess) onSuccess()
       }
@@ -129,6 +170,32 @@ export default function PostForm({ onCancel, onSuccess, communityId }: PostFormP
             />
           </div>
 
+          {imagePreview && (
+            <div className="relative">
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="w-full h-48 object-cover rounded-lg"
+              />
+              {!uploadingImage && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-2 right-2"
+                  onClick={removeImage}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
+              {uploadingImage && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
+                  <Loader2 className="w-8 h-8 animate-spin text-white" />
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="content">Text (optional)</Label>
             <Textarea
@@ -143,8 +210,26 @@ export default function PostForm({ onCancel, onSuccess, communityId }: PostFormP
 
         <CardFooter className="border-t p-4 flex justify-between">
           <div className="flex gap-2">
-            <Button type="button" variant="ghost" size="sm">
-              <Image className="w-4 h-4 mr-2" />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageSelect}
+              disabled={uploadingImage}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingImage}
+            >
+              {uploadingImage ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Image className="w-4 h-4 mr-2" />
+              )}
               Image
             </Button>
           </div>
@@ -155,7 +240,7 @@ export default function PostForm({ onCancel, onSuccess, communityId }: PostFormP
             <Button
               type="submit"
               className="bg-orange-500 hover:bg-orange-600"
-              disabled={loading}
+              disabled={loading || uploadingImage}
             >
               {loading ? 'Posting...' : 'Post'}
             </Button>

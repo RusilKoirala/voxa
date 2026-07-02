@@ -3,6 +3,9 @@ import { db } from '../db/index.js'
 import { posts, communityMembers } from '../db/schema.js'
 import { eq, and,sql, ilike, or, desc, count } from 'drizzle-orm'
 import { attachUserVoteToPost, attachUserVoteToPosts } from '../utils/voteEnrichment.js'
+import imagekit from '../utils/imagekit.js'
+import multer from 'multer'
+const upload = multer({ storage: multer.memoryStorage() })
 
 // create Post
 export const createPost = async (req: Request, res: Response) => {
@@ -258,11 +261,9 @@ export const getTrendingPosts = async(req:Request, res: Response)=> {
     let timeFilter = sql`1=1`
     const now = new Date()
 
-    if(timeRange === 'day') 
-    {
+    if(timeRange === 'day') {
       timeFilter = sql`${posts.createdAt} > ${new Date(now.getTime()- 24 * 60 * 60 * 1000)}`
-    } else if (timeRange === 'week') 
-    {
+    } else if (timeRange === 'week') {
       timeFilter = sql`${posts.createdAt} > ${new Date(now.getTime()- 7 * 24 * 60 * 60 * 1000)}`
     } else if (timeRange === 'month') {
       timeFilter = sql`${posts.createdAt} > ${new Date(now.getTime()- 30 * 24 * 60 * 60 * 1000)}`
@@ -281,8 +282,7 @@ export const getTrendingPosts = async(req:Request, res: Response)=> {
 
     // add user vote info if logged in
     let finalPosts = trendingPosts
-    if (req.userId) 
-    {
+    if (req.userId) {
       finalPosts = await attachUserVoteToPosts(trendingPosts, req.userId)
     }
 
@@ -306,8 +306,7 @@ export const searchPosts = async (req: Request, res: Response) => {
       const { q, page= 1, limit = 20} = req.query
       const offset = (Number(page) - 1)*Number(limit)
 
-      if (!q || typeof q !== 'string') 
-      {
+      if (!q || typeof q !== 'string') {
         return res.status(400).json({
           success: false,
           message: 'Search query is required'
@@ -355,3 +354,70 @@ export const searchPosts = async (req: Request, res: Response) => {
       })
     }
 }
+
+export const getImageUploadSignature = async (req:Request, res: Response) => {
+  try {
+    if (!req.userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized'
+      })
+    }
+
+    const signature = imagekit.getAuthenticationParameters()
+
+    res.status(200).json({
+      success: true,
+      message: 'Signature generated successfully',
+      data: signature
+    })
+  } catch (error) {
+    console.log('Get upload signature error:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    })
+  }
+}
+
+// upload image to ImageKit via backend (no CORS issues!)
+export const uploadImage = [
+  upload.single('file'),
+  async (req: Request, res: Response) => {
+    try {
+      if (!req.userId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Unauthorized'
+        })
+      }
+
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: 'No file uploaded'
+        })
+      }
+
+      const uploadResponse = await imagekit.upload({
+        file: req.file.buffer,
+        fileName: `post-${Date.now()}-${req.file.originalname}`,
+      })
+
+      res.status(200).json({
+        success: true,
+        message: 'Image uploaded successfully',
+        data: {
+          url: uploadResponse.url,
+          fileId: uploadResponse.fileId
+        }
+      })
+    } catch (error) {
+      console.error('Upload image error:', error)
+      res.status(500).json({
+        success: false,
+        message: 'Failed to upload image'
+      })
+    }
+  }
+]

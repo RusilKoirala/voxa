@@ -32,6 +32,7 @@ export const userAPI = {
 
 
 
+
 // Auth API
 export const authAPI = {
     login: (email: string, password: string) =>
@@ -73,36 +74,47 @@ export const communityAPI = {
 
 // Post API
 export const postAPI = {
-    getAll: () =>
-        api.get<ApiResponse<Post[]>>('/posts'),
+  getAll: () =>
+    api.get<ApiResponse<Post[]>>('/posts'),
 
-    getByCommunity: (communityId: number) =>
-        api.get<ApiResponse<Post[]>>(`/posts/community/${communityId}`),
+  getByCommunity: (communityId: number) =>
+    api.get<ApiResponse<Post[]>>(`/posts/community/${communityId}`),
 
-    getById: (id: number) =>
-        api.get<ApiResponse<Post>>(`/posts/${id}`),
+  getById: (id: number) =>
+    api.get<ApiResponse<Post>>(`/posts/${id}`),
 
-    create: (data: { title: string; content?: string; imageUrl?: string; communityId: number }) =>
-        api.post<ApiResponse<Post>>('/posts', data),
+  create: (data: { title: string; content?: string; imageUrl?: string; communityId: number }) =>
+    api.post<ApiResponse<Post>>('/posts', data),
 
-    update: (id: number, data: { title?: string; content?: string; imageUrl?: string }) =>
-        api.put<ApiResponse<Post>>(`/posts/${id}`, data),
+  update: (id: number, data: { title?: string; content?: string; imageUrl?: string }) =>
+    api.put<ApiResponse<Post>>(`/posts/${id}`, data),
 
-    delete: (id: number) =>
-        api.delete<ApiResponse<void>>(`/posts/${id}`),
+  delete: (id: number) =>
+    api.delete<ApiResponse<void>>(`/posts/${id}`),
 
-    // sorting endpoints - like reddit has
-    getHot: () =>
-        api.get<ApiResponse<Post[]>>('/posts/trending?timeRange=day'),
+  // sorting endpoints - like reddit has
+  getHot: () =>
+    api.get<ApiResponse<Post[]>>('/posts/trending?timeRange=day'),
 
-    getNew: () =>
-        api.get<ApiResponse<Post[]>>('/posts?sort=new'),
+  getNew: () =>
+    api.get<ApiResponse<Post[]>>('/posts?sort=new'),
 
-    getTop: () =>
-        api.get<ApiResponse<Post[]>>('/posts/trending?timeRange=week'),
+  getTop: () =>
+    api.get<ApiResponse<Post[]>>('/posts/trending?timeRange=week'),
 
-    getRising: () =>
-        api.get<ApiResponse<Post[]>>('/posts/trending?timeRange=day&limit=10')
+  getRising: () =>
+    api.get<ApiResponse<Post[]>>('/posts/trending?timeRange=day&limit=10'),
+
+  getUploadSignature: () =>
+    api.get<ApiResponse<{ token: string; expire: number; signature: string }>>('/posts/upload-signature'),
+
+  uploadImage: (file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return api.post<ApiResponse<{ url: string; fileId: string }>>('/posts/upload-image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  }
 }
 
 // Comment API
